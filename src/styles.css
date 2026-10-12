@@ -107,3 +107,61 @@ body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0b0e17
 .legend-effects svg { flex: none; margin-top: 3px; }
 .legend-dot { flex: none; width: 12px; height: 12px; border-radius: 3px; margin-top: 2px; }
 .legend-dot.ring0 { background: #fde68a; }
+
+/* ── Detail panel: technical feature spec ──────────────────────────────── */
+.route { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #93c5fd; background: #0b1220; border: 1px solid #1f2937; padding: 1px 6px; border-radius: 5px; }
+
+.screenlist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.screenlist li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.screen-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: .03em; color: #0b0e17; }
+.screen-badge.portal-admin { background: #f59e0b; }
+.screen-badge.portal-teacher { background: #34d399; }
+.screen-badge.portal-student { background: #60a5fa; }
+.screen-badge.portal-shared { background: #a78bfa; }
+.screen-badge.portal-api { background: #94a3b8; }
+.screen-note { font-size: 11px; color: #9ca3af; width: 100%; }
+
+.api-base { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; }
+.api-module { font-size: 11px; color: #6b7280; font-family: ui-monospace, monospace; }
+
+.endpointlist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.endpoint { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 7px 9px; }
+.endpoint-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.method-badge { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 5px; color: #0b0e17; letter-spacing: .04em; }
+.endpoint-summary { font-size: 11px; color: #9ca3af; }
+.endpoint-fields { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.fields-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
+.field-chip { font-family: ui-monospace, monospace; font-size: 11px; color: #fcd34d; background: #1f2937; padding: 1px 6px; border-radius: 5px; }
+.endpoint-auth { font-size: 11px; color: #f87171; margin-top: 5px; }
+
+.fieldlist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fieldlist li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; background: #111827; border: 1px solid #1f2937; padding: 6px 8px; border-radius: 8px; }
+.field-name { font-family: ui-monospace, monospace; font-size: 12px; color: #fcd34d; }
+.field-type { font-size: 11px; color: #93c5fd; }
+.field-note { font-size: 11px; color: #6b7280; }
+
+.notelist { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.notelist li { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+
+/* ── Detail panel: user-facing plain language ──────────────────────────── */
+.user-note { font-size: 13.5px; line-height: 1.6; color: #e5e7eb; background: #0f1a2b; border: 1px solid #1e3a5f; border-left: 3px solid #38bdf8; padding: 9px 11px; border-radius: 0 8px 8px 0; margin: 10px 0 0; white-space: pre-line; }
+.detail-plain { font-size: 14px; line-height: 1.5; color: #e5e7eb; background: #111827; border-left: 3px solid #f59e0b; padding: 8px 10px; border-radius: 0 8px 8px 0; margin: 10px 0 0; }
+.detail-audience { font-size: 13px; color: #93c5fd; margin: 6px 0 0; }
+.crud-plain { font-size: 13px; color: #cbd5e1; }
+.screen-where { font-size: 13px; color: #cbd5e1; }
+
+/* Collapsible technical section (developer detail) */
+.tech-section { margin-top: 18px; border-top: 1px solid #1f2937; padding-top: 10px; }
+.tech-toggle { width: 100%; text-align: left; background: #111827; border: 1px solid #374151; color: #9ca3af; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 12px; font-weight: 600; letter-spacing: .03em; display: flex; align-items: center; gap: 6px; }
+.tech-toggle:hover { border-color: #f59e0b; color: #e5e7eb; }
+.tech-caret { color: #f59e0b; width: 12px; }
+.tech-body { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+.tech-block h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin: 0 0 6px; }
+
+/* Rendered wiki excerpt inside the technical block */
+.wiki { display: flex; flex-direction: column; gap: 8px; }
+.wiki-h { font-size: 12px; color: #e5e7eb; margin: 6px 0 0; border-bottom: 1px solid #1f2937; padding-bottom: 3px; }
+.wiki-p { font-size: 12.5px; line-height: 1.6; color: #cbd5e1; margin: 0; }
+.wiki-list { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.wiki-list li { font-size: 12.5px; line-height: 1.6; color: #cbd5e1; }
+.wiki-code { background: #0b1220; color: #fbbf24; border: 1px solid #24324a; border-radius: 4px; padding: 1px 5px; font-size: 11.5px; }

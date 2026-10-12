@@ -46,6 +46,22 @@ export const skillTreeData: SkillTreeData = {
       crud: [],
       relatesTo: ['students', 'admissions', 'finance', 'gradebooks', 'employees', 'cca', 'sve', 'reports', 'academic-structure', 'discipline', 'attendance', 'certificates', 'analytics'],
       tags: ['portal', 'admin'],
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/students', note: 'Student directory' },
+          { portal: 'admin', path: '/parents', note: 'Parent directory' },
+          { portal: 'admin', path: '/employees', note: 'Staff directory' },
+          { portal: 'admin', path: '/cca', note: 'CCA catalogue + registration' },
+          { portal: 'admin', path: '/discipline', note: 'Discipline cases + reports' },
+          { portal: 'admin', path: '/student-billings', note: 'Billing statements' },
+          { portal: 'admin', path: '/payments', note: 'Payment approvals' },
+        ],
+        notes: [
+          'React client package @bbs-lms/admin-portal; ~250+ routes defined in src/routes.js.',
+          'Auth entry: redirects to login; session JWT from api_nest /v1/auth.',
+          'Feature-gated by CASL abilities via the shared BBSCan wrapper.',
+        ],
+      },
     },
     {
       id: 'teacher-portal',
@@ -57,6 +73,22 @@ export const skillTreeData: SkillTreeData = {
       crud: [],
       relatesTo: ['gradebooks', 'sow', 'attendance', 'cca', 'sve', 'leaps', 'discipline', 'students'],
       tags: ['portal', 'teacher'],
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/resources', note: 'Content builder (subjects → chapters → lessons)' },
+          { portal: 'teacher', path: '/classrooms', note: 'Class list + per-class view' },
+          { portal: 'teacher', path: '/sows', note: 'Schemes of work' },
+          { portal: 'teacher', path: '/lesson-plan', note: 'Lesson plans + library' },
+          { portal: 'teacher', path: '/gradebook', note: 'Primary gradebook' },
+          { portal: 'teacher', path: '/assignments', note: 'Assignments + grading' },
+          { portal: 'teacher', path: '/sves', note: 'SVE exams + item analysis' },
+          { portal: 'teacher', path: '/petals-observation', note: 'Teaching observation / appraisal' },
+        ],
+        notes: [
+          'React client package @bbs-lms/teacher-portal; routes defined in src/routes.js.',
+          'Grade entry posts to api_nest gradebook endpoints (/v1/gradebookTables, /v1/studentGrades).',
+        ],
+      },
     },
     {
       id: 'student-portal',
@@ -68,6 +100,21 @@ export const skillTreeData: SkillTreeData = {
       crud: [],
       relatesTo: ['subjects-topics', 'assignments', 'pickup', 'cca', 'certificates', 'reports', 'attendance'],
       tags: ['portal', 'student'],
+      spec: {
+        screens: [
+          { portal: 'student', path: '/dashboard', note: 'Landing dashboard' },
+          { portal: 'student', path: '/subjects', note: 'Subjects → topics → lessons' },
+          { portal: 'student', path: '/assignments', note: 'Assignments + submissions' },
+          { portal: 'student', path: '/report', note: 'Report card' },
+          { portal: 'student', path: '/classroom', note: 'Classroom view' },
+          { portal: 'student', path: '/cca-registration', note: 'CCA sign-up' },
+          { portal: 'student', path: '/my-certificate', note: 'Download certificates' },
+        ],
+        notes: [
+          'React client package @bbs-lms/student-portal; routes defined in src/routes.js.',
+          'Read-mostly: consumes content and posts assignment submissions.',
+        ],
+      },
     },
     {
       id: 'client-common',
@@ -95,6 +142,7 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'subjects-topics',
       title: 'Subjects → Topics → Lessons',
+      userNote: 'Subjects, Topics, dan Lessons adalah tingkatan isi pembelajaran yang tersusun dari mata pelajaran, bab (Chapter), hingga pelajaran. Guru membangun dan mengisi topik serta lesson dari materi SOW, sedangkan siswa membuka menu subjects untuk membaca topik dan pelajaran yang tersedia pada mata pelajaran yang mereka ikuti.',
       category: 'academic',
       description: 'Content hierarchy consumed by student portal (/subjects) and built by teacher portal (/resources). Subject library and lesson builder chapters.',
       level: 2,
@@ -107,6 +155,32 @@ export const skillTreeData: SkillTreeData = {
       ],
       relatesTo: ['subject-in-year', 'sow', 'teacher-portal', 'student-portal'],
       tags: ['content'],
+      spec: {
+        screens: [
+          { portal: 'student', path: '/subjects', note: 'Browse subjects' },
+          { portal: 'student', path: '/subjects/:subjectYearId/:topicId/:lessonId', note: 'Read a lesson' },
+          { portal: 'student', path: '/subjectLibrary/:subjectId/:chapterId', note: 'Subject library chapters' },
+          { portal: 'teacher', path: '/resources', note: 'Content builder root' },
+          { portal: 'teacher', path: '/resources/:subjectId/:chapterId/lessons/:lessonId', note: 'Edit a lesson' },
+        ],
+        api: {
+          basePath: '/api/v1/subjectLibraries',
+          module: 'subject-library',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List subject libraries' },
+            { method: 'GET', path: '/:id', summary: 'Library with chapters' },
+            { method: 'POST', path: '/', summary: 'Create library', fields: ['subjectId', 'name'] },
+            { method: 'POST', path: '/:id/chapters', summary: 'Add chapter', fields: ['title', 'order'] },
+            { method: 'PUT', path: '/:id', summary: 'Update library' },
+            { method: 'DELETE', path: '/:id', summary: 'Delete library' },
+          ],
+        },
+        requiredFields: [
+          { name: 'subjectId', type: 'relation → Subject' },
+          { name: 'name', type: 'string' },
+        ],
+        notes: ['Hierarchy is Subject → Topic → Lesson (student view) and Subject → Chapter → Lesson (teacher library).'],
+      },
     },
     {
       id: 'lesson-plan',
@@ -124,10 +198,28 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sow', 'teacher-portal'],
       tags: [],
       wikiFile: 'sow.md',
+      wiki: '# Scheme of work\n\nScheme of work, lessons, materials, topics, and assignments. Admin owns `/sow`. Teacher builds resources. Student reads subjects and assignments.\n\nSee also:\n\n- [subject-in-year.md](subject-in-year.md)\n- [file-sharing.md](file-sharing.md)\n- [academic-structure.md](academic-structure.md)\n- [classrooms.md](classrooms.md)\n- [gradebooks.md](gradebooks.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/sow` | Nav: SOW / List & Component. `SUBJECT_MODULES.SOW`. Also `/sow/add`, `/sow/:sowId`, `/sow/:sowId/edit`. |\n| Teacher | `/sows`, `/sows/:sowId` | Nav: Scheme of Works. |\n| Teacher | `/resources` | Lesson builder. Nested `:subjectId`, `:chapterId`, `lessons/:lessonId`, `assignments/:assignmentId`, `/resources/assign`. `SUBJECT_MODULES.LESSON_BUILDER`. |\n| Teacher | `/assignments` | Assignment list and student submission. |\n| Student | `/subjects` | Topic and lesson: `/subjects/:subjectYearId/:topicId`, `.../:lessonId`. |\n| Student | `/subjectLibrary` | Library read. Nested `:subjectId`, `:chapterId`. |\n| Student | `/assignments`, `/assignments/:studentAssignmentId` | |\n\n## Modules\n\nModules: sow, lesson, lesson-plan, material, topic, assignment, assign-assignment, assign-lesson, assign-topic, student-assignment, student-lesson. A name with `*` in the catalog brief means the assign- prefix, not a closed inventory.\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Lesson Plan membantu guru menyusun rencana pembelajaran mingguan untuk tiap kelas dan mata pelajaran, lengkap dengan topik, rincian materi, komentar, dan file pendukung. Rencana ini diikat pada tahun ajaran, term, dan minggu tertentu sehingga guru dapat mengelola, merevisi, dan menyalin rencana dari periode sebelumnya secara terstruktur.',
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/lesson-plan', note: 'Plan list' },
+          { portal: 'teacher', path: '/lesson-plan/new', note: 'Create a plan' },
+          { portal: 'teacher', path: '/lesson-plan/library', note: 'Shared plan library' },
+          { portal: 'teacher', path: '/lesson-plan/file-library', note: 'Attached files' },
+          { portal: 'teacher', path: '/lesson-plan-viewer', note: 'Read-only viewer' },
+        ],
+        requiredFields: [
+          { name: 'classYearId', type: 'relation → ClassYear' },
+          { name: 'subjectYearId', type: 'relation → SubjectInYear' },
+          { name: 'week', type: 'number', note: 'Teaching week number' },
+        ],
+        notes: ['Linked to SOW (scheme of work); a plan inherits the week/topic from its SOW entry.'],
+      },
     },
     {
       id: 'assignments',
       title: 'Assignments',
+      userNote: 'Fitur Assignments mengelola tugas yang diberikan guru kepada siswa, termasuk daftar tugas, batas waktu, dan penilaiannya. Guru dapat membuat, menyunting, serta menilai tugas, sedangkan siswa melihat dan mengerjakan tugas yang diberikan. Fitur ini membantu memantau penyelesaian tugas siswa dan mengaitkan hasilnya dengan Gradebook.',
       category: 'assessment',
       description: 'Teacher assigns work and grades per student; student portal /assignments to submit and view.',
       level: 2,
@@ -140,10 +232,37 @@ export const skillTreeData: SkillTreeData = {
       ],
       relatesTo: ['teacher-portal', 'student-portal', 'gradebooks'],
       tags: [],
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/assignments', note: 'Assignment list' },
+          { portal: 'teacher', path: '/assignments/:assignmentId/:studentAssignmentId', note: 'Grade one submission' },
+          { portal: 'student', path: '/assignments', note: 'Student assignment list' },
+          { portal: 'student', path: '/assignments/:studentAssignmentId', note: 'Submit / view feedback' },
+        ],
+        api: {
+          basePath: '/api/v1/assignments',
+          module: 'assignment',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List assignments' },
+            { method: 'GET', path: '/:id', summary: 'Assignment with submissions' },
+            { method: 'POST', path: '/', summary: 'Create assignment', fields: ['title', 'subjectYearId', 'dueDate', 'totalMarks'] },
+            { method: 'PUT', path: '/:id', summary: 'Update assignment' },
+            { method: 'PUT', path: '/submissions/:id/grade', summary: 'Grade a student submission', fields: ['marks', 'feedback'] },
+            { method: 'DELETE', path: '/:id', summary: 'Delete assignment' },
+          ],
+        },
+        requiredFields: [
+          { name: 'title', type: 'string' },
+          { name: 'subjectYearId', type: 'relation → SubjectInYear' },
+          { name: 'dueDate', type: 'date' },
+          { name: 'totalMarks', type: 'number' },
+        ],
+      },
     },
     {
       id: 'conduct-badges',
       title: 'Conduct, Remarks & E-Badges',
+      userNote: 'Modul perilaku (conduct) dan E-Badges yang dipakai untuk mencatat catatan perilaku serta memberikan badge elektronik kepada siswa. Guru wali kelas mencatat conduct dan e-badge siswa, sementara admin mengatur jenis badge. Fitur ini menjadi jalur pencatatan perilaku utama dan apresiasi siswa di tingkat kelas.',
       category: 'student-life',
       description: 'Teacher portal conduct/remarks entry + ebadges; feeds student dashboard widgets (badges, medals).',
       level: 2,
@@ -159,6 +278,7 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'leaves',
       title: 'Leaves',
+      userNote: 'Modul pengajuan izin/cuti guru yang memungkinkan staf pendidik mengajukan permohonan tidak masuk. Data pengajuan izin tersimpan dan dapat dikelola oleh pihak sekolah. Fitur ini membantu sekolah mengelola ketidakhadiran guru secara tercatat dan terpusat.',
       category: 'operations',
       description: 'Staff leave requests and approvals (teacher portal).',
       level: 2,
@@ -188,10 +308,31 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['access', 'access-rights', 'parents', 'students', 'employees'],
       tags: ['users', 'roles'],
       wikiFile: 'identity.md',
+      wiki: '# Identity\n\nPeople, campuses, org units, RBAC, and pick-up. Index of identity pages.\n\n## Children\n\n- [access.md](access.md) — CASL roles, JWT, OTP\n- [students.md](students.md) — student records\n- [parents.md](parents.md) — parent records, no parent SPA\n- [employees.md](employees.md) — staff, positions, organisations\n- [campuses.md](campuses.md) — campuses, branches, campus programmes\n- [pickup.md](pickup.md) — student pick-up\n- [file-sharing.md](file-sharing.md) — academic-department files (also under academic structure)\n\nSee also:\n\n- [academic-structure.md](academic-structure.md)\n- [student-transfer.md](student-transfer.md)\n- [admissions.md](admissions.md)\n- [access.md](access.md)\n\n## Modules\n\nModules: auth, admin, employee, employee-device, employee-identity, employee-otp, employee-position, user-datatable, user-entity-type, user-profile, user-role, casl, organization, campus, campus-gate, branch, division, department, academic-department, academic-department-file, position, position-scope, head-department, teacher, parent, student, student-pick-up, student-pick-up-person, student-pick-up-request, student-pick-up-setting.\n\nPortals: all three SPAs consume identity. Admin owns org CRUD. Teacher and student consume the logged-in profile and campus-scoped lists.\n\nMUST: campus-scope CASL checks on org writes. MUST NOT: start `bbs/api` for auth. Auth is `api_nest` `/v1/auth/*` plus refresh as on [systems.md](systems.md).\n\nEmployee OTP and device security: see [access.md](access.md). Pick-up is admin plus related student or parent flows. There is no parent SPA here, so parent pick-up UI is out of this repo.\n\n[Wiki home](README.md)',
+      userNote: 'Identity & User Management adalah pusat pengelolaan semua pihak yang berhubungan dengan sekolah, yaitu staf, guru, siswa, orang tua, gedung kampus, dan unit organisasi. Di sini staf TU mengatur data orang, hak akses (CASL), serta penjemputan siswa. Teacher dan siswa memakai portal masing-masing hanya untuk melihat profil mereka sendiri.',
+      spec: {
+        api: {
+          basePath: '/api/v1/auth',
+          module: 'auth',
+          endpoints: [
+            { method: 'POST', path: '/login', summary: 'Authenticate, returns access + refresh JWT', fields: ['email', 'password'] },
+            { method: 'POST', path: '/refresh', summary: 'Rotate access token', fields: ['refreshToken'] },
+            { method: 'POST', path: '/logout', summary: 'Invalidate refresh token' },
+            { method: 'GET', path: '/me', summary: 'Current user profile + abilities' },
+          ],
+        },
+        requiredFields: [
+          { name: 'email', type: 'string (unique)', note: 'Login identifier across all roles' },
+          { name: 'password', type: 'string', note: 'Hashed with bcrypt' },
+          { name: 'role', type: 'enum', note: 'parent / student / employee — determines portal access' },
+        ],
+        notes: ['All three portals (admin, teacher, student) authenticate against the same /v1/auth issue tokens scoped by role.'],
+      },
     },
     {
       id: 'identity-create-parent',
       title: 'Create Parent',
+      userNote: 'Fitur ini dipakai staf TU untuk membuat akun orang tua/wali siswa di portal admin. Setelah akun dibuat, orang tua dapat mengakses informasi anaknya melalui portal khusus orang tua. Portal orang tua itu sendiri berada di luar sistem ini, sehingga pembuatan akunnya dilakukan oleh pihak sekolah.',
       category: 'identity',
       description: 'Register a parent account and link to students.',
       level: 2,
@@ -199,10 +340,28 @@ export const skillTreeData: SkillTreeData = {
       crud: [{ id: 'cp-1', label: 'Create parent + link student', type: 'create' }],
       relatesTo: ['parents', 'students'],
       tags: ['crud:create'],
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/parents/add', note: 'Create parent form' },
+        ],
+        api: {
+          basePath: '/api/v1/parents',
+          module: 'parent',
+          endpoints: [
+            { method: 'POST', path: '/', summary: 'Create parent (and optional user login)', fields: ['name', 'email', 'phone', 'studentIds[]'] },
+          ],
+        },
+        requiredFields: [
+          { name: 'name', type: 'string' },
+          { name: 'email', type: 'string (unique)' },
+          { name: 'studentIds', type: 'relation[] → Students', note: 'Which students this parent is linked to' },
+        ],
+      },
     },
     {
       id: 'identity-create-student-user',
       title: 'Create Student Login',
+      userNote: 'Fitur ini dipakai staf TU untuk membuat akun login bagi siswa di portal admin. Akun ini memberi siswa akses ke portal siswa untuk melihat informasi akademiknya sendiri. Data siswa dikelola admin, dan siswa tidak dapat mengubah catatan administrasinya.',
       category: 'identity',
       description: 'Provision student login under a parent or standalone.',
       level: 2,
@@ -210,10 +369,25 @@ export const skillTreeData: SkillTreeData = {
       crud: [{ id: 'cs-1', label: 'Create student user', type: 'create' }],
       relatesTo: ['students', 'parents'],
       tags: ['crud:create'],
+      spec: {
+        api: {
+          basePath: '/api/v1/students',
+          module: 'student',
+          endpoints: [
+            { method: 'POST', path: '/:id/user', summary: 'Provision a portal login for a student', fields: ['email', 'password', 'parentId'] },
+          ],
+        },
+        requiredFields: [
+          { name: 'studentId', type: 'relation → Students' },
+          { name: 'email', type: 'string (unique)' },
+          { name: 'parentId', type: 'relation → Parents', note: 'Optional — student can be standalone' },
+        ],
+      },
     },
     {
       id: 'identity-create-employee',
       title: 'Create Employee Login',
+      userNote: 'Fitur ini dipakai staf TU untuk membuat akun login bagi pegawai, guru, maupun admin sekolah. Akun ini menentukan siapa yang dapat masuk ke portal admin atau portal guru sesuai peran yang diberikan. Data pegawai, jabatan, dan organisasinya juga diatur dari halaman ini.',
       category: 'identity',
       description: 'Provision teacher/staff login with role.',
       level: 2,
@@ -221,6 +395,23 @@ export const skillTreeData: SkillTreeData = {
       crud: [{ id: 'ce-1', label: 'Create employee user', type: 'create' }],
       relatesTo: ['employees', 'access-rights'],
       tags: ['crud:create'],
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/employees/add', note: 'Onboard employee + login' },
+        ],
+        api: {
+          basePath: '/api/v1/employees',
+          module: 'employee',
+          endpoints: [
+            { method: 'POST', path: '/', summary: 'Create employee (and user login)', fields: ['name', 'email', 'positionId', 'departmentId', 'roleId'] },
+          ],
+        },
+        requiredFields: [
+          { name: 'name', type: 'string' },
+          { name: 'email', type: 'string (unique)' },
+          { name: 'roleId', type: 'relation → UserRoles', note: 'Determines CASL abilities' },
+        ],
+      },
     },
     {
       id: 'access',
@@ -233,6 +424,20 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['identity', 'access-rights'],
       tags: [],
       wikiFile: 'access.md',
+      wiki: '# Access\n\nCASL roles, JWT auth, OTP switches. The login-page 2FA bypass toggle is gone from all three portals.\n\nSee also:\n\n- [systems.md](systems.md)\n- [identity.md](identity.md)\n- [open-questions.md](open-questions.md)\n- [rules.md](rules.md)\n\n## Roles\n\nRoles from CASL: Super Admin, Admin, Teacher, Teacher HOD, Student, Parent. Files: `bbs/client/src/config/rbac`, `api_nest/src/modules/casl`.\n\nPermissions are action plus subject. Actions named in [PROJECT_KNOWLEDGE.md](../PROJECT_KNOWLEDGE.md): CREATE, READ, UPDATE, DELETE, MANAGE, VIEW. Confirm against `api_nest/src/modules/casl` before treating that list as closed. Permissions can be campus-scoped.\n\n## Auth\n\nAuth is JWT. Passport JWT on `api_nest`. Requests carry `Authorization: Bearer <accessToken>`; `bbs-web-token` is the localStorage key that stores the access token ([systems.md](systems.md)) — it is not a header name.\n\nOTP 2FA exists. Modules and files: `api_nest` `employee-otp`, `api_nest/src/services/device-security.service.ts`, and the OTP verify flow in both login pages (`bbs/client/src/views/pages/login/Login.jsx`, `bbs/client-teacher/src/views/pages/login/Login.jsx`). Device fingerprint still runs when OTP is off.\n\n## OTP switches\n\nOTP is off by default. One switch remains:\n\n| Switch | Where | Default |\n| --- | --- | --- |\n| `OTP_ENABLED` | API env | off (unset or not `true`) |\n\nVerified 2026-09-30: the login-page toggle and the `localStorage` `OTP_ENABLED` switch are gone. `OTP_ENABLED` has zero matches across all three portal sources (`bbs/client/src`, `bbs/client-teacher/src`, `bbs/client-student/src`); both `Login.jsx` files keep only the OTP verify flow, no bypass toggle. The old 2FA bypass risk ([OTP_TOGGLE_GUIDE.md](../OTP_TOGGLE_GUIDE.md)) is closed at the UI layer.\n\nThe API env switch stays authoritative: when `OTP_ENABLED` is not `true`, OTP is off and device fingerprint still runs. `OTP_ENABLED` is used in source and is missing from `.env.example`. See [systems.md](systems.md).\n\nParent access: API link env only. No parent SPA in this repo.\n\nMUST NOT: start `bbs/api` for auth. Auth is `api_nest` `/v1/auth/*` plus refresh as on [systems.md](systems.md).\n\n[Wiki home](README.md)',
+      userNote: 'Access mengatur sistem keamanan dan izin masuk seluruh portal, mencakup peran (CASL), autentikasi JWT, dan verifikasi OTP. Setiap pengguna hanya dapat membuka menu dan fitur yang sesuai dengan perannya dan kampusnya. Sekolah dapat mengaktifkan OTP 2FA untuk menambah lapisan keamanan saat login.',
+      spec: {
+        api: {
+          basePath: '/api/v1/auth',
+          module: 'auth',
+          endpoints: [
+            { method: 'POST', path: '/login', summary: 'Issue session tokens' },
+            { method: 'POST', path: '/logout', summary: 'End session' },
+            { method: 'GET', path: '/me', summary: 'Session identity + portal role' },
+          ],
+        },
+        notes: ['JWT access token (short-lived) + refresh token (rotating). Guard: JwtAuthGuard on every protected route.'],
+      },
     },
     {
       id: 'access-rights',
@@ -248,6 +453,25 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['identity', 'access'],
       tags: [],
       wikiFile: 'access-rights.md',
+      wiki: '# Access rights\n\nAdmin UI for roles. OTP, JWT, and CASL mechanics live on [access.md](access.md).\n\nSee also:\n\n- [access.md](access.md)\n- [employees.md](employees.md)\n- [identity.md](identity.md)\n- [rules.md](rules.md)\n\n## Admin routes\n\nSetting nav: `/access-rights`. Name in `routes.js`: User Role Access. Component `AccessRights`. Subject `USER_ROLE`.\n\nThis page is the back-office screen that lists and edits roles. It is not the login-page OTP toggle and not the CASL ability definitions. Those: [access.md](access.md).\n\nEmployee CRUD is `/employees` under the Employee nav. See [employees.md](employees.md).\n\n## Modules\n\nModules: user-role. Related on [identity.md](identity.md) and [access.md](access.md): casl, auth, employee-otp.\n\nAPI: `/v1/userRole` (`POST`, `GET`, `GET :id`, `PUT :id`) and `POST /v1/userRole/user/permissions` (`populateUserPermissions`, body `id` plus `authType`).\n\nPortal: admin. Teacher and student do not own this screen.\n\n[Wiki home](README.md)',
+      userNote: 'Access Rights adalah layar back-office khusus admin untuk melihat dan mengatur daftar peran pengguna beserta izin yang dimiliki tiap peran. Admin dapat menentukan peran apa yang boleh mengakses fitur tertentu. Halaman ini hanya dimiliki portal admin dan tidak tersedia untuk guru maupun siswa.',
+      spec: {
+        api: {
+          basePath: '/api/v1/userRoles',
+          module: 'user-role',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List roles with their permission sets' },
+            { method: 'POST', path: '/', summary: 'Create role', fields: ['name', 'permissions[]'] },
+            { method: 'PUT', path: '/:id', summary: 'Assign / revoke permissions', fields: ['permissions[]'] },
+            { method: 'DELETE', path: '/:id', summary: 'Delete role' },
+          ],
+        },
+        requiredFields: [
+          { name: 'name', type: 'string', note: 'Role name, e.g. Admin / Teacher' },
+          { name: 'permissions', type: 'string[]', note: 'CASL ability strings, e.g. "read:Student"' },
+        ],
+        notes: ['Enforced client-side via BBSCan (CASL) and server-side via @CheckPermissions decorator on controllers.'],
+      },
     },
     {
       id: 'parents',
@@ -265,6 +489,35 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'pickup', 'invoices'],
       tags: [],
       wikiFile: 'parents.md',
+      wiki: '# Parents\n\nParent records in the admin portal. API parent link env exists. There is no parent SPA in this repo.\n\nSee also:\n\n- [students.md](students.md)\n- [access.md](access.md)\n- [identity.md](identity.md)\n- [admissions.md](admissions.md)\n- [systems.md](systems.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/parents` | Nav: Parent & Student Account. `SUBJECT_MODULES.PARENT`. Also `/parents/add`, `/parents/:parentId`, `/parents/:parentId/edit`. |\n| Teacher | none | |\n| Student | none | |\n\n`PARENT_WEB_LINK` is on `api_nest/.env.example`. It is an env name only. No parent SPA in `bbs`. Encoded on [access.md](access.md) and [systems.md](systems.md).\n\n## Modules\n\nModule: parent.\n\nMUST NOT: start `bbs/api` for auth. Auth is `api_nest` `/v1/auth/*` plus refresh as on [systems.md](systems.md).\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Parents menyimpan catatan orang tua/wali siswa dan dikelola dari portal admin oleh staf TU. Di sini staf dapat melihat, menambah, mengubah, dan menghapus data orang tua serta keterkaitannya dengan siswa. Portal khusus orang tua tidak berada di sistem ini.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/parents', note: 'Parent directory (list + search)' },
+          { portal: 'admin', path: '/parents/add', note: 'Create a new parent' },
+          { portal: 'admin', path: '/parents/:parentId', note: 'Parent profile detail' },
+          { portal: 'admin', path: '/parents/:parentId/edit', note: 'Edit parent + linked students' },
+        ],
+        api: {
+          basePath: '/api/v1/parents',
+          module: 'parent',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List / filter parents' },
+            { method: 'GET', path: '/:id', summary: 'Parent detail with linked students' },
+            { method: 'POST', path: '/', summary: 'Create parent', fields: ['fullName', 'email', 'phoneNumber', 'studentIds[]', 'parentRole'] },
+            { method: 'POST', path: '/bulk', summary: 'Bulk-create parents', fields: ['parents[]'] },
+            { method: 'POST', path: '/check-duplicate', summary: 'Check for a duplicate parent', fields: ['email', 'phoneNumber'] },
+            { method: 'PUT', path: '/:id', summary: 'Update parent' },
+            { method: 'DELETE', path: '/:id', summary: 'Delete parent' },
+          ],
+        },
+        requiredFields: [
+          { name: 'fullName', type: 'string', note: 'CreateParentDto marks this @IsOptional — enforced in the service layer' },
+          { name: 'email', type: 'string', note: 'Used as the login identifier; uniqueness checked via /check-duplicate' },
+          { name: 'studentIds', type: 'relation[] → Students', note: 'Which students this parent is linked to' },
+        ],
+        notes: ['CreateParentDto declares nearly every field @IsOptional, so the API accepts a partial payload; required-field enforcement lives in the service layer.'],
+      },
     },
     {
       id: 'students',
@@ -282,6 +535,40 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['parents', 'student-admission', 'student-transfer', 'student-transcripts', 'attendance'],
       tags: [],
       wikiFile: 'students.md',
+      wiki: '# Students\n\nStudent records in the admin portal. Teacher opens a student from a class year. The student portal does not administer this.\n\nSee also:\n\n- [identity.md](identity.md)\n- [parents.md](parents.md)\n- [pickup.md](pickup.md)\n- [student-transfer.md](student-transfer.md)\n- [student-billing.md](student-billing.md)\n- [promote.md](promote.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/students` | Nav: Parent & Student Account. `SUBJECT_MODULES.STUDENT`. Also `/students/add`, `/students/:studentId`, `/students/:studentId/edit`. |\n| Teacher | `/classrooms/:classYearId/:studentId` | Student details under a class year. Not student CRUD. |\n| Student | none | Student has no admin of this. |\n\nFiles: `bbs/client/src/containers/_nav.jsx`, `bbs/client/src/routes.js`, `bbs/client-teacher/src/routes.js`.\n\n## Modules\n\nModule: student. Related: parent, class-year. Billing for a student: [student-billing.md](student-billing.md) (finance cluster; page may still be a stub).\n\nMUST NOT: count withdrawn or inactive students in attendance totals, daily-complete checks, or student headcount. Encoded on [rules.md](rules.md) and [attendance.md](attendance.md): `studentStatus` CURRENT and `activeStatus` ACTIVE only.\n\nClass-year transfer of grades is not student CRUD. See [student-transfer.md](student-transfer.md).\n\nNo other encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Students menyimpan seluruh catatan siswa dan dikelola dari portal admin oleh staf TU, termasuk identitas, kelas, dan statusnya. Guru dapat membuka detail siswa dari halaman kelas yang diampu. Siswa yang berstatus tidak aktif atau telah keluar tidak dihitung dalam kehadiran maupun jumlah siswa.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/students', note: 'Student directory' },
+          { portal: 'admin', path: '/students/add', note: 'Enrol a new student' },
+          { portal: 'admin', path: '/students/:studentId', note: 'Student 360 view' },
+          { portal: 'admin', path: '/students/:studentId/edit', note: 'Edit student record' },
+          { portal: 'student', path: '/dashboard', note: 'Student self-view' },
+        ],
+        api: {
+          basePath: '/api/v1/students',
+          module: 'student',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List / filter students' },
+            { method: 'GET', path: '/:id', summary: 'Student detail' },
+            { method: 'POST', path: '/', summary: 'Create student', fields: ['firstName', 'lastName', 'fullName', 'dateOfBirth', 'gender'] },
+            { method: 'PUT', path: '/:id', summary: 'Update student', fields: ['fullName', 'dateOfBirth', 'gender'] },
+            { method: 'DELETE', path: '/:id', summary: 'Soft-delete student' },
+          ],
+        },
+        requiredFields: [
+          { name: 'firstName', type: 'string' },
+          { name: 'lastName', type: 'string' },
+          { name: 'fullName', type: 'string' },
+          { name: 'dateOfBirth', type: 'date (ISO)' },
+          { name: 'gender', type: 'enum', note: 'GenderTypeEnum' },
+          { name: 'academicYearId', type: 'number', note: 'Enrolment academic year' },
+        ],
+        notes: [
+          'Optional on create: placeOfBirth, nationality, religion, previousSchool[], parents[], studentAdmission, currentClassYearId, username/password, nisn, ktp, passport, kitas.',
+          'Student can be created standalone or with a nested parent + admission payload.',
+        ],
+      },
     },
     {
       id: 'student-transfer',
@@ -294,6 +581,23 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'class-in-year', 'campuses'],
       tags: [],
       wikiFile: 'student-transfer.md',
+      wiki: '# Student transfer\n\nClass-year transfer of grades and reports. Not CCA transfer.\n\nSee also:\n\n- [cca.md](cca.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n- [open-questions.md](open-questions.md)\n\nFrom [STUDENT_TRANSFER_FEATURE_DOCUMENTATION.md](../STUDENT_TRANSFER_FEATURE_DOCUMENTATION.md). Admin migrates grades and reports from studentFrom to studentTo in the same academic year. Orchestrated in `class-year.service.ts` inside a transaction. Helpers: `transfer-student-batch.service.ts`, `transfer-student-validation.service.ts`, `transfer-student-logging.service.ts`. DTO: `transfer-student-class-year.dto.ts` (academicYearId, studentFromId, studentToId).\n\n`STRICT_SUBJECT_YEAR_MATCH` default `true`: transfer only subjects that already exist on the target class year. `false` creates missing subject years, default gradebook tables, teacher assignment, banding.\n\nValidation: both students exist and are active; academic year exists; no duplicate migration; campus permission.\n\nGrade copies set transferFrom to the source grade id. Failed individual grade copies are skipped. The transaction still rolls back on hard errors.\n\nDocumented request: `POST /api/class-year/transfer-student`. Confirm the live controller path against URI versioning (`/api/v1/...`) before calling it. This is not the CCA transfer. Contrast: [cca.md](cca.md).\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Student Transfer dipakai admin untuk memindahkan nilai dan rapor seorang siswa ke siswa lain dalam tahun ajaran yang sama. Proses ini memvalidasi bahwa kedua siswa aktif dan tidak terjadi pemindahan ganda, lalu menyalin data nilai secara otomatis. Fitur ini berbeda dengan pemindahan CCA.',
+      spec: {
+        api: {
+          basePath: '/api/v1/classYears',
+          module: 'class-year',
+          endpoints: [
+            { method: 'POST', path: '/transfer', summary: 'Transfer a student to another class', fields: ['studentId', 'toClassYearId', 'reason'] },
+            { method: 'GET', path: '/transfer-audit', summary: 'Audit trail of past transfers' },
+          ],
+        },
+        requiredFields: [
+          { name: 'studentId', type: 'string' },
+          { name: 'toClassYearId', type: 'string' },
+          { name: 'reason', type: 'string', note: 'Recorded in audit log' },
+        ],
+      },
     },
     {
       id: 'student-transcripts',
@@ -306,6 +610,17 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'reports'],
       tags: [],
       wikiFile: 'student-transcripts.md',
+      wiki: '# Student transcripts\n\nPrimary 6 transcript PDF from `StudentGrade`. This is not a `Report` row and not a `ReportTypeEnum` member.\n\nSee also:\n\n- [reports.md](reports.md)\n- [certificates.md](certificates.md)\n- [gradebooks.md](gradebooks.md)\n\n## No entity folder\n\n`api_nest/src/modules/student-transcript/` has controller, service, module, and dto only. No `entities/` folder.\n\n## Generate\n\n`StudentTranscriptService.generateTranscript`. Loads `MasterLevel` where `name === \'Primary 6\'`. Student\'s `currentClassYear.masterLevel.id` must match. Other levels throw.\n\nGrades come from `StudentGrade` for the current class year\'s banded `SubjectYear`s. Display grade prefers `adjustmentFinalGrade || finalGrade`. `hasValidGrade` is `!!(finalGrade && finalGrade > 0)`. Subjects without a valid grade are dropped.\n\n## Templates\n\n`generateTranscriptPDF` in `api_nest/src/helpers/transcript/transcript-pdf.helper.ts`.\n\n| Branch name | Template |\n| --- | --- |\n| `Pantai Indah Kapuk` | `student-transcript-pik.hbs` |\n| other | `student-transcript.hbs` |\n\n## ACL and routes\n\nController `/v1/studentTranscripts`. Subject `ModulesTypeEnum.STUDENT_TRANSCRIPT`.\n\n| Method | Path | Action |\n| --- | --- | --- |\n| POST | `/v1/studentTranscripts/generate/:studentId` | CREATE |\n| POST | `/v1/studentTranscripts/generate-pdf/:studentId` | CREATE |\n| POST | `/v1/studentTranscripts/generate-bulk-pdfs` | CREATE |\n| GET | `/v1/studentTranscripts/grades/bulk` | READ |\n| GET | `/v1/studentTranscripts/grades/student/:studentId` | READ |\n| PUT | `/v1/studentTranscripts/grades/bulk` | UPDATE |\n\nAdmin SPA `/student-transcripts`.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Student Transcripts menghasilkan transkrip PDF resmi untuk siswa tingkat Primary 6 berdasarkan nilai yang tersimpan di Gradebook. Admin dapat membuat transkrip satu per satu maupun sekaligus untuk banyak siswa, serta melihat dan memperbarui nilai yang dipakai. Tampilan transkrip mengikuti format khusus untuk kampus Pantai Indah Kapuk.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/student-transcripts', note: 'Generate + download transcripts' },
+        ],
+        requiredFields: [
+          { name: 'studentId', type: 'string' },
+          { name: 'academicYearId', type: 'string', note: 'Which year the transcript covers' },
+        ],
+      },
     },
     {
       id: 'employees',
@@ -323,6 +638,42 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['identity', 'classrooms'],
       tags: [],
       wikiFile: 'employees.md',
+      wiki: '# Employees\n\nStaff, positions, and organisations. Live admin nav is the Employee group. Separate teacher and admin list routes are commented.\n\nSee also:\n\n- [access.md](access.md)\n- [campuses.md](campuses.md)\n- [identity.md](identity.md)\n- [rules.md](rules.md)\n- [systems.md](systems.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/employees` | Nav: Employee / List. `SUBJECT_MODULES.EMPLOYEE`. Also `/employees/add`, `/employees/:employeeId`, `/employees/:employeeId/edit`. |\n| Admin | `/positions` | `SUBJECT_MODULES.POSITION`. Assign: `/positions/assign`, `/positions/:positionId/assign-employee`. |\n| Admin | `/organizations` | `SUBJECT_MODULES.ORGANIZATION`. |\n| Admin | `/teachers`, `/admins` | Commented in `_nav.jsx` (note: move to Employee) and in `routes.js`. Not live nav. |\n| Teacher | none for this CRUD | Teacher consumes the logged-in profile. |\n| Student | none | |\n\n## Modules\n\nModules: employee, employee-device, employee-identity, employee-otp, employee-position, teacher, admin, position, position-scope, organization. A name with `*` in the catalog brief means the employee prefix, not a closed inventory.\n\nOTP and device security: [access.md](access.md). MUST: campus-scope CASL checks on org writes. MUST NOT: start `bbs/api` for auth. Encoded on [identity.md](identity.md).\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur Employees mengelola data staf sekolah beserta jabatan dan unit organisasinya dari portal admin. Staf TU dapat menambah, melihat, mengubah, dan menghapus data pegawai serta menetapkan jabatan dan organisasi mereka. Penulisan data organisasi dibatasi oleh izin sesuai kampus masing-masing.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/employees', note: 'Staff directory' },
+          { portal: 'admin', path: '/employees/add', note: 'Onboard a new employee' },
+          { portal: 'admin', path: '/employees/:employeeId', note: 'Employee profile' },
+          { portal: 'admin', path: '/employees/:employeeId/edit', note: 'Edit employee + roles' },
+        ],
+        api: {
+          basePath: '/api/v1/employees',
+          module: 'employee',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List staff' },
+            { method: 'GET', path: '/:id', summary: 'Employee detail' },
+            { method: 'POST', path: '/', summary: 'Create employee', fields: ['staffId', 'username', 'password', 'firstName', 'lastName', 'emailBbs', 'titleType', 'isSuperAdmin', 'isTeacher', 'profile'] },
+            { method: 'PUT', path: '/:id', summary: 'Update employee', fields: ['firstName', 'lastName', 'titleType'] },
+            { method: 'DELETE', path: '/:id', summary: 'Deactivate employee' },
+          ],
+        },
+        requiredFields: [
+          { name: 'staffId', type: 'string', note: 'Unique staff identifier' },
+          { name: 'username', type: 'string' },
+          { name: 'password', type: 'string' },
+          { name: 'firstName', type: 'string' },
+          { name: 'lastName', type: 'string' },
+          { name: 'emailBbs', type: 'string (unique)' },
+          { name: 'titleType', type: 'enum', note: 'TitleTypeEnum — Mr/Ms/Dr etc.' },
+          { name: 'isSuperAdmin', type: 'boolean' },
+          { name: 'isTeacher', type: 'boolean' },
+          { name: 'profile', type: 'object', note: 'CreateUserProfileV2Dto (nested)' },
+        ],
+        notes: [
+          'Optional: phoneNumber, whatsAppNumber, campusIds[], branchIds[], masterProgrammeIds[], roleId/roleIds[], signatureImageUrl, nipp, nameWithTitle.',
+        ],
+      },
     },
     // ---- Admissions ----
     {
@@ -336,6 +687,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['student-admission', 'offer-admission', 'placement-tests'],
       tags: [],
       wikiFile: 'admissions.md',
+      wiki: '# Admissions\n\nApplicant intake, offers, documents, lead source, and placement tests. No invented scoring formulas.\n\nSee also:\n\n- [finance.md](finance.md)\n- [identity.md](identity.md)\n- [academic-structure.md](academic-structure.md)\n- [sources.md](sources.md)\n\n## Children\n\n- [student-admission.md](student-admission.md) — `/admissions`, addBilling, approval\n- [offer-admission.md](offer-admission.md) — Offers, approval, generate-oa\n- [document-verification.md](document-verification.md) — Admission documents\n- [placement-tests.md](placement-tests.md) — Tests, schedules, settings, results\n\n## Modules\n\nModules: student-admission, offer-admission, admission-agreement, admission-document, leadgen, information-source, placement-test, placement-test-attempt, placement-test-result, placement-test-schedule, placement-test-setting, placement-test-subject.\n\nPortal: admin. Teacher records placement-test-results. No extra MUST rules in the scattered notes. Do not invent scoring formulas.\n\n[Wiki home](README.md)',
+      userNote: 'Modul pusat penerimaan siswa baru yang menghimpun seluruh proses dari pendaftaran calon siswa, penerbitan surat penawaran, pemeriksaan dokumen, sampai tes penempatan. Tim admin admission memakainya untuk mengelola berkas pelamar dan mencatat sumber informasi (lead source) calon siswa. Modul ini menjadi pintu masuk utama data siswa baru sebelum mereka resmi menjadi siswa.',
     },
     {
       id: 'student-admission',
@@ -348,6 +701,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'document-verification'],
       tags: [],
       wikiFile: 'student-admission.md',
+      wiki: '# Student admission\n\nApplicant records, approval, and add-billing from an admission.\n\nSee also:\n\n- [offer-admission.md](offer-admission.md)\n- [placement-tests.md](placement-tests.md)\n- [student-billing.md](student-billing.md)\n- [document-verification.md](document-verification.md)\n\n## Admin routes\n\nAdmission nav item Student Admission: `/admissions`.\n\n| Path | Name | Subject |\n| --- | --- | --- |\n| `/admissions` | Admissions | `STUDENT_ADMISSION` |\n| `/admissions/:studentAdmissionId` | Detail | `STUDENT_ADMISSION`, additional `APPROVAL_STUDENT_ADMISSION` |\n| `/admissions/:studentAdmissionId/addBilling` | Add Billing | `BILLING` |\n| `/admissions/:studentAdmissionId/approval` | Approval Admission | `STUDENT_ADMISSION`, additional `APPROVAL_STUDENT_ADMISSION` |\n\nCommented leftovers in `routes.js`: `/admission`, `/admission/add`, `/admission/:admissionId`. Not live.\n\n## Modules\n\nModules: student-admission.\n\nRelated on this index: leadgen, information-source. See [admissions.md](admissions.md).\n\nAPI: `/v1/studentAdmissions`.\n\nA student-admission row has `studentId`, `academicYearId`, `branchId`, `masterProgrammeId`, `masterLevelId`, `registrationStatus`, and optional `offerAdmissionId` / `oaStatus`. Encoded `RegistrationStatusTypeEnum` (not a scoring formula): WAITING_REVIEW 1, REVIEWED, REGISTRATION_UNPAID, REGISTRATION_PAID, WITHDRAWN, INFORMATION_COMPLETED, DOCUMENT_COMPLETED, PLACEMENT_TEST, ADMITTED, REJECTED, NOT_ADMITTED, WAITING_LIST.\n\nAdd-billing from an admission uses the billing form. Fee math: [student-billing.md](student-billing.md). Do not invent fee formulas.\n\nPortal: admin.\n\n[Wiki home](README.md)',
+      userNote: 'Bagian yang menyimpan data calon siswa (applicant) yang mendaftar ke sekolah, termasuk persetujuan penerimaan dan penambahan tagihan biaya. Admin dapat melihat daftar pendaftar, membuka detail satu pendaftar, menyetujui penerimaan, dan menambahkan billing untuk siswa yang diterima. Data di sini menjadi dasar untuk proses administrasi keuangan setelah siswa lolos.',
     },
     {
       id: 'offer-admission',
@@ -360,6 +715,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['student-admission'],
       tags: [],
       wikiFile: 'offer-admission.md',
+      wiki: '# Offer admission\n\nOffers of admission, approval, and PDF preview. generate-oa is not a live route.\n\nSee also:\n\n- [student-admission.md](student-admission.md)\n- [document-verification.md](document-verification.md)\n- [document-templates.md](document-templates.md)\n- [admissions.md](admissions.md)\n\n## Admin routes\n\nAdmission nav item Offer Admission: `/offer-admissions`.\n\n| Path | Name |\n| --- | --- |\n| `/offer-admissions` | Offer Admissions |\n| `/offer-admissions/add/:studentAdmissionId` | Add |\n| `/offer-admissions/:studentAdmissionId` | Detail |\n| `/offer-admissions/:studentAdmissionId/edit` | Edit |\n| `/approval-offer-admissions` | Offer Admissions (approval list) |\n| `/approval-offer-admissions/:studentAdmissionId/process` | Process |\n\n`/offer-admissions/generate-oa` is commented out in `routes.js` (`GenerateOfferAdmission`). Do not document it as a live screen.\n\nMeta: `OFFER_OF_ADMISSION`, additional `APPROVAL_OFFER_OF_ADMISSION` on the list and process routes.\n\n## Modules\n\nModules: offer-admission, admission-agreement.\n\nAPI: `/v1/offerAdmissions` including `GET /previewPdf`. Templates: [document-templates.md](document-templates.md).\n\nPortal: admin.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur untuk membuat dan mengelola surat penawaran (offer letter) kepada calon siswa yang dinyatakan diterima. Admin dapat membuat, meninjau pratinjau, dan menyetujui penawaran sebelum dikirim ke orang tua. Modul ini memastikan setiap penawaran penerimaan tercatat rapi dan dapat dicetak sebagai dokumen resmi.',
     },
     {
       id: 'placement-tests',
@@ -372,6 +729,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['student-admission'],
       tags: [],
       wikiFile: 'placement-tests.md',
+      wiki: '# Placement tests\n\nPlacement test definitions, schedules, settings, and results. No invented scoring formulas.\n\nSee also:\n\n- [student-admission.md](student-admission.md)\n- [admissions.md](admissions.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n\n## Admin routes\n\nAdmission nav item Placement Test points at `/placement-test-schedules`. Additional subjects on that nav item: `PLACEMENT_TEST`, `PLACEMENT_TEST_RESULT`, `PLACEMENT_TEST_SETTING`.\n\n| Path | Name |\n| --- | --- |\n| `/placement-tests` | Placement Tests |\n| `/placement-tests/add` | Add |\n| `/placement-tests/:placementTestId` | Detail |\n| `/placement-tests/:placementTestId/edit` | Edit |\n| `/placement-test-results` | Results |\n| `/placement-test-results/add` | Add/Exam |\n| `/placement-test-results/edit/:studentAdmissionId` | Edit results |\n| `/placement-test-schedules` | Schedules |\n| `/placement-test-settings` | Settings |\n| `/placement-test-settings/add` | Add setting |\n| `/placement-test-settings/:ptSettingId` | Edit setting |\n\n## Teacher routes\n\nGrade nav: `/placement-test-results`, `/placement-test-results/add`. Subject `PLACEMENT_TEST_RESULT`.\n\n## Modules\n\nModules: placement-test*.\n\nA name with `*` is a prefix. Related: placement-test, placement-test-attempt, placement-test-result, placement-test-schedule, placement-test-setting, placement-test-subject.\n\nAPI: `/v1/placementTests`.\n\nNo extra MUST scoring rules in the scattered notes. Do not invent placement scoring formulas.\n\n[Wiki home](README.md)',
+      userNote: 'Tes penempatan yang dipakai sekolah untuk menilai kemampuan calon siswa dan menentukan kelas atau level yang sesuai. Admin mengelola definisi tes, jadwal, pengaturan, dan hasilnya, sementara guru mencatat nilai hasil tes. Fitur mencakup daftar tes, pengaturan tes, serta pencatatan dan pengeditan hasil tes per calon siswa. Catatan: rumus penilaian tidak dirinci di wiki.',
     },
     {
       id: 'document-verification',
@@ -384,6 +743,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['student-admission'],
       tags: [],
       wikiFile: 'document-verification.md',
+      wiki: '# Document verification\n\nAdmission document review for a student admission.\n\nSee also:\n\n- [student-admission.md](student-admission.md)\n- [offer-admission.md](offer-admission.md)\n- [admissions.md](admissions.md)\n- [identity.md](identity.md)\n\n## Admin routes\n\nAdmission nav item Document Verification: `/document-verification` (nav `exact: true`).\n\n| Path | Name | Subject |\n| --- | --- | --- |\n| `/document-verification` | Document Verification | `ADMISSION_DOCUMENT`, additional `APPROVAL_ADMISSION_DOCUMENT` |\n| `/document-verification/:studentAdmissionId` | Verify | same, action UPDATE |\n\n## Modules\n\nModules: admission-document.\n\nPortal: admin. There is no teacher or student owner for this write path in the SPA routes.\n\n[Wiki home](README.md)',
+      userNote: 'Modul verifikasi dokumen untuk memeriksa kelengkapan dan keabsahan berkas pendaftaran calon siswa. Admin meninjau setiap dokumen yang diunggah dan menandainya sesuai atau menyisipkan catatan penolakan bila perlu. Fitur ini memastikan hanya dokumen yang valid yang lolos ke tahap penerimaan berikutnya.',
     },
     // ---- Academic ----
     {
@@ -397,6 +758,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['programmes', 'campuses', 'academic-year', 'class-in-year', 'subject-in-year'],
       tags: [],
       wikiFile: 'academic-structure.md',
+      wiki: '# Academic structure\n\nYear, programme, class, subject, timetable, banding, scheme of work, and lesson content. Index of structure pages.\n\n## Children\n\n- [academic-year.md](academic-year.md) — academic year\n- [programmes.md](programmes.md) — programme and master level\n- [classrooms.md](classrooms.md) — classroom master\n- [class-in-year.md](class-in-year.md) — class year cohort\n- [subject-in-year.md](subject-in-year.md) — subject year and enroll teacher\n- [sow.md](sow.md) — scheme of work, lessons, assignments\n- [file-sharing.md](file-sharing.md) — subject and department files\n- [promote.md](promote.md) — streaming and promotion\n- [master-data.md](master-data.md) — leftover school and education masters\n- [campuses.md](campuses.md) — campus, branch, campus programme (also identity)\n\nSee also:\n\n- [student-transfer.md](student-transfer.md)\n- [cca.md](cca.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [awardees.md](awardees.md)\n- [attendance.md](attendance.md)\n- [identity.md](identity.md)\n\n## Modules\n\nModules: academic-year, programme, master-programme, master-level, class-year, classroom, subject, master-subjects, subject-year, subject-chapter, subject-file, subject-library, schedule, banding, homeroom-subject-teacher, board-teacher, master-board, sow, lesson, lesson-plan, material, topic, assign-assignment, assign-lesson, assign-topic, plus related assignment, student-assignment, student-lesson.\n\nPortals: admin configures structure. Teacher builds SOW, lessons, assignments. Student reads subjects, topics, lessons, assignments.\n\n## Master level ids\n\nMaster level IDs used by secondary grading (from [SECONDARY_GRADEBOOK.md](../SECONDARY_GRADEBOOK.md)): 7-17. See [secondary-gradebook.md](secondary-gradebook.md).\n\nPrimary EMSCBI awardees use `ml_id` 1 and 2. See [awardees.md](awardees.md). Do not assume other IDs from this file.\n\n## Transfers\n\nClass-year transfer of grades is a separate feature. See [student-transfer.md](student-transfer.md). It is not CCA transfer. CCA transfer: [cca.md](cca.md).\n\n[Wiki home](README.md)',
+      userNote: 'Academic Structure adalah pusat pengaturan seluruh kerangka akademik sekolah, mulai dari tahun ajaran, Programme, kelas, mata pelajaran, jadwal, banding, hingga Scheme of Work dan konten pelajaran. Admin staf TU memakai halaman ini untuk membangun dan merapikan struktur sekolah, sedangkan guru dan siswa menggunakannya sebagai dasar agar setiap pelajaran dan penilaian tersambung dengan benar.',
     },
     {
       id: 'programmes',
@@ -412,6 +775,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['cambridge', 'sow'],
       tags: [],
       wikiFile: 'programmes.md',
+      wiki: '# Programmes\n\nProgramme and master level. Admin nav label is Programme & Level.\n\nSee also:\n\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [awardees.md](awardees.md)\n- [academic-structure.md](academic-structure.md)\n- [campuses.md](campuses.md)\n- [class-in-year.md](class-in-year.md)\n- [master-data.md](master-data.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/programme` | Nav: Programme & Level. `SUBJECT_MODULES.MASTER_PROGRAMME_AND_LEVEL`. Also `/programme/add`, `/programme/:programmeId`, `/programme/:programmeId/edit`, `/programme/:programmeId/level`. |\n| Admin | `/campus-programmes` | Campus offering. See [campuses.md](campuses.md). |\n| Teacher | none for this CRUD | |\n| Student | none | |\n\n## Modules\n\nModules: programme, master-programme, master-level.\n\n## Master level ids\n\nSecondary grading uses master level ids 7-17. See [secondary-gradebook.md](secondary-gradebook.md).\n\nPrimary EMSCBI awardees use `ml_id` 1 and 2. See [awardees.md](awardees.md).\n\nDo not assume other IDs from this file. Encoded on [academic-structure.md](academic-structure.md).\n\nNo other encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Programmes (dengan label menu Programme & Level) dipakai admin staf TU untuk mengelola daftar program pendidikan dan tingkat (level) yang ditawarkan sekolah. Di sini admin bisa menambah, mengubah, dan mengatur level pada setiap program agar menjadi acuan resmi bagi penjurusan, gradebook, dan penghargaan siswa.',
     },
     {
       id: 'campuses',
@@ -424,6 +789,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['classrooms'],
       tags: [],
       wikiFile: 'campuses.md',
+      wiki: '# Campuses\n\nCampuses, branches, and campus programmes. Org units that scope the rest of the catalog.\n\nSee also:\n\n- [academic-year.md](academic-year.md)\n- [programmes.md](programmes.md)\n- [identity.md](identity.md)\n- [academic-structure.md](academic-structure.md)\n- [employees.md](employees.md)\n- [access.md](access.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/campuses` | Nav: School Master Data. `SUBJECT_MODULES.CAMPUS`. Nested programme add/edit/assign under `/campuses/:campusId/...`. Assign employee: `/campuses/:campusId/assign-employee`. |\n| Admin | `/branches` | `SUBJECT_MODULES.BRANCH`. Assign employee: `/branches/:branchId/assign-employee`. |\n| Admin | `/campus-programmes` | `SUBJECT_MODULES.PROGRAMME`. Assign employee and campus assign subroutes exist. |\n| Teacher | none for this CRUD | Campus-scoped lists only. |\n| Student | none for this CRUD | |\n\nMaster programme and level (not the campus offering): [programmes.md](programmes.md) `/programme`.\n\n## Modules\n\nModules: campus, campus-gate, branch, programme.\n\nMUST: campus-scope CASL checks on org writes. Encoded on [identity.md](identity.md).\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Campuses mengelola daftar kampus dan branch sekolah sebagai unit organisasi yang membatasi (scope) seluruh data lainnya. Admin staf TU dapat menambah kampus atau branch, mengaitkannya dengan Programme yang ditawarkan, serta menugaskan karyawan ke kampus tertentu, sehingga pengelolaan data sekolah terpisah rapi antar lokasi.',
     },
     {
       id: 'academic-year',
@@ -436,6 +803,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['promote', 'class-in-year'],
       tags: [],
       wikiFile: 'academic-year.md',
+      wiki: '# Academic year\n\nThe academic-year master used by class years, billing, and promotion.\n\nSee also:\n\n- [class-in-year.md](class-in-year.md)\n- [promote.md](promote.md)\n- [academic-structure.md](academic-structure.md)\n- [campuses.md](campuses.md)\n- [student-transfer.md](student-transfer.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/academic-year` | Nav: School Master Data. `SUBJECT_MODULES.ACADEMIC_YEAR`. Also `/academic-year/add`, `/academic-year/:academicYearId`, `/academic-year/:academicYearId/edit`. |\n| Teacher | none for this CRUD | |\n| Student | none | |\n\n## Modules\n\nModule: academic-year.\n\nClass-year transfer of grades is same academic year. See [student-transfer.md](student-transfer.md).\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Academic Year adalah data induk tahun ajaran yang menjadi acuan bagi kelas per tahun, penagihan (billing), dan proses kenaikan kelas. Admin staf TU memakainya untuk membuat, melihat, mengubah, dan mengelola daftar tahun ajaran yang aktif di sekolah, sehingga semua kegiatan akademik terhubung ke periode tahun yang tepat.',
     },
     {
       id: 'class-in-year',
@@ -453,6 +822,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'classrooms', 'attendance'],
       tags: [],
       wikiFile: 'class-in-year.md',
+      wiki: '# Class in year\n\nClass year: a classroom plus programme plus academic year. Admin attendance subroute lives here. Transfer and promotion hang off this entity.\n\nSee also:\n\n- [student-transfer.md](student-transfer.md)\n- [promote.md](promote.md)\n- [attendance.md](attendance.md)\n- [classrooms.md](classrooms.md)\n- [academic-year.md](academic-year.md)\n- [students.md](students.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/class-in-year` | Nav: Academic Year Data. `SUBJECT_MODULES.CLASS_IN_YEAR`. Also add, `:classInYearId`, edit. |\n| Admin | `/class-in-year/:classInYearId/attendance` | Add attendance in class. Component `ClassInYearAttendance`. |\n| Teacher | `/classrooms/:classYearId` | Teacher does not own the admin class-in-year list. |\n| Student | `/classroom/:classYearId` | Read. |\n\n## Modules\n\nModule: class-year. Related: classroom, attendance, student-promotion.\n\nClass-year transfer of grades is orchestrated in `class-year.service.ts`. See [student-transfer.md](student-transfer.md). It is not CCA transfer.\n\nAttendance totals: CURRENT+ACTIVE only. Encoded on [attendance.md](attendance.md) and [rules.md](rules.md).\n\nNo other encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Class In Year (kelas per tahun) menggabungkan sebuah Classroom dengan Programme dan Academic Year menjadi satu angkatan kelas pada tahun tertentu. Admin staf TU memakai fitur ini untuk membuat dan mengatur daftar kelas tiap tahun, mencatat kehadiran langsung di kelas, serta menjadi tempat berpijaknya proses transfer dan kenaikan siswa.',
     },
     {
       id: 'classrooms',
@@ -465,6 +836,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['campuses'],
       tags: [],
       wikiFile: 'classrooms.md',
+      wiki: '# Classrooms\n\nClassroom master in admin. Teacher and student open class-year classrooms, not this master list.\n\nSee also:\n\n- [class-in-year.md](class-in-year.md)\n- [attendance.md](attendance.md)\n- [academic-structure.md](academic-structure.md)\n- [students.md](students.md)\n- [campuses.md](campuses.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/classes` | Nav: Education Master Data / Classroom. `SUBJECT_MODULES.CLASS`. Also `/classes/add`, `/classes/:classId`, `/classes/:classId/edit`. |\n| Teacher | `/classrooms` | Class-year list. Details `/classrooms/:classYearId`. Student `/classrooms/:classYearId/:studentId`. Report viewer `/classrooms/:classYearId/:term/:reportType`. |\n| Student | `/classroom` | Detail `/classroom/:classYearId`. |\n\nThis page is the classroom master (`classroom`). The year cohort is [class-in-year.md](class-in-year.md) (`class-year`).\n\n## Modules\n\nModule: classroom.\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Classrooms adalah data induk ruang kelas yang dipakai admin staf TU di menu Education Master Data. Di sini admin membuat, melihat, dan mengubah daftar kelas sebagai referensi dasar, sementara guru dan siswa membuka daftar kelas per tahun (Class In Year) yang berisi siswa dan laporan, bukan master kelas ini.',
     },
     {
       id: 'subject-in-year',
@@ -477,6 +850,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['gradebooks', 'sow'],
       tags: [],
       wikiFile: 'subject-in-year.md',
+      wiki: '# Subject in year\n\nSubject year: a subject offered on a class year. Admin enrolls students to a teacher (banding form).\n\nSee also:\n\n- [sow.md](sow.md)\n- [gradebooks.md](gradebooks.md)\n- [academic-structure.md](academic-structure.md)\n- [class-in-year.md](class-in-year.md)\n- [programmes.md](programmes.md)\n- [master-data.md](master-data.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/subject-in-year` | Nav: Academic Year Data. `SUBJECT_MODULES.SUBJECT_IN_YEAR`. Also `:subjectYearId`, edit. |\n| Admin | `/subject-in-year/:subjectYearId/enroll/:teacherId` | Enroll students to teacher. Component `BandingForm`. |\n| Admin | `/subjects`, `/master-subjects` | Subject and master subject under Education Master Data. |\n| Teacher | gradebook paths use `:subjectYearId` | Gradebook pages are [gradebooks.md](gradebooks.md) (sibling page). |\n| Student | `/subjects`, `/subjects/:subjectYearId` | Read. Lessons under topic: [sow.md](sow.md). |\n\n## Modules\n\nModules: subject-year, subject, master-subjects. Related: banding, homeroom-subject-teacher.\n\n`STRICT_SUBJECT_YEAR_MATCH` on class-year transfer is encoded on [student-transfer.md](student-transfer.md). Default `true`.\n\nNo other encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Subject In Year (mata pelajaran per tahun) mencatat mata pelajaran yang dibuka pada sebuah kelas di tahun ajaran tertentu. Admin staf TU dapat menambah dan mengubah daftar mata pelajaran ini serta mendaftarkan siswa ke guru pengampu melalui formulir banding, sementara guru memakainya sebagai acuan Gradebook dan siswa membaca mata pelajaran yang diikuti.',
     },
     {
       id: 'sow',
@@ -489,6 +864,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['subject-in-year', 'lo-settings'],
       tags: [],
       wikiFile: 'sow.md',
+      wiki: '# Scheme of work\n\nScheme of work, lessons, materials, topics, and assignments. Admin owns `/sow`. Teacher builds resources. Student reads subjects and assignments.\n\nSee also:\n\n- [subject-in-year.md](subject-in-year.md)\n- [file-sharing.md](file-sharing.md)\n- [academic-structure.md](academic-structure.md)\n- [classrooms.md](classrooms.md)\n- [gradebooks.md](gradebooks.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/sow` | Nav: SOW / List & Component. `SUBJECT_MODULES.SOW`. Also `/sow/add`, `/sow/:sowId`, `/sow/:sowId/edit`. |\n| Teacher | `/sows`, `/sows/:sowId` | Nav: Scheme of Works. |\n| Teacher | `/resources` | Lesson builder. Nested `:subjectId`, `:chapterId`, `lessons/:lessonId`, `assignments/:assignmentId`, `/resources/assign`. `SUBJECT_MODULES.LESSON_BUILDER`. |\n| Teacher | `/assignments` | Assignment list and student submission. |\n| Student | `/subjects` | Topic and lesson: `/subjects/:subjectYearId/:topicId`, `.../:lessonId`. |\n| Student | `/subjectLibrary` | Library read. Nested `:subjectId`, `:chapterId`. |\n| Student | `/assignments`, `/assignments/:studentAssignmentId` | |\n\n## Modules\n\nModules: sow, lesson, lesson-plan, material, topic, assignment, assign-assignment, assign-lesson, assign-topic, student-assignment, student-lesson. A name with `*` in the catalog brief means the assign- prefix, not a closed inventory.\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Scheme of Work (SOW) adalah rangkaian rencana pembelajaran tertulis yang memuat topik, lesson, materi, dan assignment untuk satu mata pelajaran. Admin mengelola daftar SOW, guru menyusun lesson dan assignment lewat Lesson Builder serta membagikannya ke siswa, dan siswa membaca subjek, topik, pelajaran, serta mengerjakan tugas yang diberikan.',
     },
     {
       id: 'lo-settings',
@@ -501,6 +878,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sow'],
       tags: [],
       wikiFile: 'lo-settings.md',
+      wiki: '# Learning outcome settings\n\nAdmin learning-outcome routes and `learning-outcome-year` bulk-update rules.\n\nSee also:\n\n- [primary-reports.md](primary-reports.md)\n- [awardees.md](awardees.md)\n- [reports.md](reports.md)\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /learning-outcomes | List. Also /learning-outcomes/add, /learning-outcomes/:learningOutcomeId |\n| /learning-outcome-in-years | In-year list. Also /learning-outcome-in-years/add, /learning-outcome-in-years/:learningOutcomeYearId, /learning-outcome-in-years/:learningOutcomeYearId/edit |\n| /learning-outcome-grade-settings | Grade settings. Also /learning-outcome-grade-settings/add, /learning-outcome-grade-settings/:loGradeSettingId |\n| /learning-outcome-analyses | Analyses |\n\nModules: learning-outcome, learning-outcome-year, learning-outcome-analysis, learning-outcome-certificate, learning-indicator, learning-indicator-grade, lo-grade-setting, lo-year-learning-outcome.\n\nAwardees consume indicator grades: [awardees.md](awardees.md). Mark order used there: BEGINNING 1, DEVELOPING 2, COMPETENT 3, PROFICIENT 4.\n\n## Bulk update (`learning-outcome-year`)\n\nFrom [LOGIC_CHANGES_SUMMARY.md](../LOGIC_CHANGES_SUMMARY.md). These rules moved here from [primary-reports.md](primary-reports.md).\n\n- In-batch duplicate check: load current DB rows for IDs in the batch; `seen` Map of combinations; catch two new items with the same combination, a new item vs an update, and an update vs a new item.\n- Merge when a record is moved onto an existing combination (example in that note: record 2695 term 3 changed to term 2, record 2689 already has term 2). Merge learning indicators into the existing row; mark the changing record `__skip = true`. Error only if both records are changing to the same combination.\n- Normalize IDs to numbers (`normalizeToNumber` on masterLevelId, campusId, academicYearId, term; learning indicator IDs `parseInt` before `LearningIndicator.find()`).\n- Skip `checkDuplicate` when the combination did not change (indicator-only update).\n- Reload relations after save (`learningIndicators`, `learningOutcomes`).\n\nMUST: load `learningIndicators` and `learningOutcomes` on GET (`findOne`, `findAll`, `findWithQuery`). MUST NOT: compare string IDs to numeric IDs.\n\n[Wiki home](README.md)',
+      userNote: 'LO Settings (Learning Outcome) mengatur daftar Learning Outcome beserta pengaturan per tahun, pengaturan nilai, dan analisis capaian siswa. Admin staf TU memakai fitur ini untuk menambah LO, mengelolanya per tahun ajaran, mengatur skala penilaian (BEGINNING, DEVELOPING, COMPETENT, PROFICIENT), dan melihat analisis, yang kemudian dipakai untuk laporan dan penentuan awardee.',
     },
     {
       id: 'promote',
@@ -513,6 +892,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['academic-year', 'students'],
       tags: [],
       wikiFile: 'promote.md',
+      wiki: '# Promote\n\nPromote students between class years. Admin `/promote`. Teacher form-class streaming and promotion. This is not class-year grade transfer and not CCA transfer.\n\nSee also:\n\n- [class-in-year.md](class-in-year.md)\n- [students.md](students.md)\n- [student-transfer.md](student-transfer.md)\n- [academic-structure.md](academic-structure.md)\n- [certificates.md](certificates.md)\n- [academic-year.md](academic-year.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/promote` | Nav: Academic Year Data / Promote Student. `SUBJECT_MODULES.PROMOTE_STUDENT`. Class year `/promote/:classYearId`. |\n| Admin | `/migrate-student-grades` | Same subject. Component `StudentsPromoteMigrateGrades`. |\n| Teacher | `/streaming-and-promotion` | Form class. `SUBJECT_MODULES.STREAMING_AND_PROMOTION`. Also `/streaming-and-promotion/:classYearId/:academicYearId`. |\n| Student | none | |\n\n## Modules\n\nModule: student-promotion.\n\nClass-year transfer of grades (studentFrom to studentTo, same academic year) is a separate feature. See [student-transfer.md](student-transfer.md). CCA transfer: [cca.md](cca.md).\n\nNo encoded math in the scattered notes. Do not invent promotion score formulas.\n\n[Wiki home](README.md)',
+      userNote: 'Promote adalah fitur untuk memindahkan siswa naik ke kelas atau angkatan berikutnya, serta melakukan streaming siswa di tingkat form class. Admin staf TU mengelola proses promosi dan pemindahan nilai siswa lewat menu Promote, sedangkan guru memakai halaman streaming and promotion untuk membantu penjurusan siswa.',
     },
     {
       id: 'cambridge',
@@ -525,6 +906,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['programmes', 'cambridge-pum'],
       tags: [],
       wikiFile: 'cambridge.md',
+      wiki: '# Cambridge\n\nCambridge component model: five tables, `Components.val` trap, unused per-paper boundary cells. Thresholds, PUM interpolation, SVE, printing, and prelims live on child pages.\n\n## Children\n\n- [thresholds.md](thresholds.md) — `/threshold`, `/threshold-as-prelim`, DRAFT/ACTIVE, IGCSE_ALEVEL vs AS_PRELIM\n- [cambridge-pum.md](cambridge-pum.md) — pointer to the PUM band formula note\n- [sve.md](sve.md) - SVE object model and routes\n- [sve-lock.md](sve-lock.md) - deadline lock and the missing `/sves/component/lock` nest path\n- [sve-timetable.md](sve-timetable.md) - exam date, sessions, cover\n- [sve-grade-input.md](sve-grade-input.md) - teacher grade input\n- [sve-item-analysis.md](sve-item-analysis.md) - keys and analytics\n- [sve-files.md](sve-files.md) - documents, BMT, past paper\n- [sve-printing.md](sve-printing.md) - printing-request formulas\n- [prelims.md](prelims.md) - PRELIMS_QNA and migration\n\nSee also:\n\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [open-questions.md](open-questions.md)\n- [academic-structure.md](academic-structure.md)\n- [sources.md](sources.md)\n\nFrom [CAMBRIDGE_COMPONENT_MODEL.md](../CAMBRIDGE_COMPONENT_MODEL.md) and [Threshold_Feature_Documentation.md](../docs/Threshold_Feature_Documentation.md). PUM band math: [cambridge-pum.md](cambridge-pum.md) → [cambridge-pum-formula.md](../docs/cambridge-pum-formula.md). Printing counts: [sve-printing.md](sve-printing.md) → [PRINTING_DETAIL_LOGIC.md](../PRINTING_DETAIL_LOGIC.md).\n\n## Five tables\n\n| Table | One row is |\n| --- | --- |\n| master_sve_components | A paper, per subject. Fields include name, code, subject_id, is_also_as_level |\n| syllabus | Syllabus for one year and one qualification type (IGCSE, ASLEVEL, ALEVEL), with an effective range |\n| syllabus_component | One cell of that syllabus grid, not one row per paper |\n| grade_schema | Which letters exist for a Cambridge programme. Values are 0. Used to filter keys, not to supply marks |\n| threshold | Boundary marks per subject and year. avg_value holds letter to number pairs |\n\n`syllabus_component` cells carry `row_index`, `col_index`, `key`, `val`. A grid row is a paper. `type_value`: SchemaValue (0) is the configured grid; AverageValue (1) is an overlay. Grading reads SchemaValue.\n\n`Components.val` is `master_sve_components.id` stored in `numeric(20,2)` with no FK. It is not a paper number. Broken `Components.val` silently creates `Paper {row_index}` with code `paper_{row_index}` on first read (`loadGradableComponents`).\n\n`loadGradableComponents` skips rows with no Total Marks cell. `student_cambridge_grade.syllabus_component_id` stores the Total Marks cell id (NOT NULL). A paper mark cannot be stored if that chain breaks.\n\n## Grading path\n\n    raw_mark -> calculateScaledTotal (weight-normalised) -> determineGrade(round(scaledTotal), boundaries, thresholdType, gradeSchema)\n\nBoundaries come from `threshold.avg_value` on the ACTIVE row, not from the per-paper a*, a, b cells in the grid. Those per-paper cells are a third boundary store and are unused on the gradebook path. Flag that. `grade_schema` only names which letters exist. See [open-questions.md](open-questions.md).\n\nTypes, DRAFT/ACTIVE, and admin routes: [thresholds.md](thresholds.md). PUM interpolation: [cambridge-pum.md](cambridge-pum.md). Do not copy those band widths into product code from this catalog.\n\n## Unused per-paper cells\n\nBoundaries exist in three places with different scopes:\n\n| Where | Scope | Used for grading? |\n| --- | --- | --- |\n| threshold.avg_value | subject + year + threshold type | Yes (ACTIVE row) |\n| grade_schema.schema | Cambridge programme | Only to say which letters exist |\n| syllabus_component a*, a, b… cells | individual paper | No — at least not on this path |\n\n## Portals\n\nAdmin owns threshold, syllabus, SVE config, printing request. Teacher enters Cambridge and SVE grades. Student does not configure thresholds.\n\nTeacher Cambridge gradebooks: `/cambridge-gradebook/igcse`, `/cambridge-gradebook/a-level`, `/cambridge-gradebook/as-level`, `/cambridge-gradebook/:programme/:subjectYearId`. Admin also has `/student-cambridge-actual-grade`.\n\nSVE family: [sve.md](sve.md). Printing: [sve-printing.md](sve-printing.md). Prelims: [prelims.md](prelims.md).\n\n[Wiki home](README.md)',
+      userNote: 'Cambridge adalah model komponen penilaian Cambridge yang mengatur kertas ujian per mata pelajaran, Syllabus per jenis kualifikasi (IGCSE, AS Level, A Level), skema nilai, threshold, SVE, printing, dan prelims. Fitur ini dipakai admin dan guru untuk mengelola seluruh data penilaian Cambridge, mulai dari jadwal ujian, input nilai siswa, analisis butir soal, hingga cetak dokumen ujian.',
     },
     {
       id: 'cambridge-pum',
@@ -537,6 +920,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['cambridge'],
       tags: [],
       wikiFile: 'cambridge-pum.md',
+      wiki: '# Cambridge PUM\n\nPointer to the PUM interpolation note. This page does not invent band widths.\n\nSee also:\n\n- [cambridge.md](cambridge.md)\n- [thresholds.md](thresholds.md)\n- [prelims.md](prelims.md)\n\nPUM band math lives in [cambridge-pum-formula.md](../docs/cambridge-pum-formula.md). Do not copy those band widths into product code from this catalog, and do not treat the numbers in that note as invented here.\n\n## What the letter sets are\n\nSummarised from that formula note and the paragraph that lived on [cambridge.md](cambridge.md):\n\n- AS Prelim uses A–E plus U.\n- IGCSE and A Level use A-star through G plus U.\n- Legacy rounds the average first, then interpolates (`grade = Math.round(avg)` then PUM). Nest `calculatePUM` in `student-cambridge-grade.service.ts` follows the same idea.\n\nLetter boundaries that feed the interpolation come from the ACTIVE threshold `avg_value`. Types: [thresholds.md](thresholds.md). Model: [cambridge.md](cambridge.md). How predicted PUM is stored for GPA: [prelims.md](prelims.md).\n\n## Nest path named in that note\n\n- `determineGrade()`: scaled total to letter using threshold boundaries.\n- `calculatePUM()`: AS_PRELIM vs IGCSE_ALEVEL band structure as written in [cambridge-pum-formula.md](../docs/cambridge-pum-formula.md).\n- A* for IGCSE/A Level is derived as `a + (a - b)` when not stored (that note). Do not restate the per-band multipliers here.\n\n[Wiki home](README.md)',
+      userNote: 'Cambridge PUM adalah perhitungan prediksi nilai Cambridge dalam skala PUM (percentage uniform mark) berdasarkan nilai rata-rata siswa dan ambang batas (threshold). Sistem mengubah nilai menjadi huruf sesuai batas threshold aktif, lalu menginterpolasi ke angka PUM sesuai jenis kualifikasi (AS Prelim atau IGCSE/A Level) untuk keperluan prediksi dan pelaporan.',
     },
     // ---- Assessment ----
     {
@@ -555,6 +940,37 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['grade-moderation', 'secondary-gradebook', 'secondary-gpa', 'reports'],
       tags: [],
       wikiFile: 'gradebooks.md',
+      wiki: '# Gradebooks\n\nAdmin grade books and primary default weights. Sec/JC FYA math is not on this page.\n\nSee also:\n\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [lo-settings.md](lo-settings.md)\n- [grade-moderation.md](grade-moderation.md)\n- [secondary-gpa.md](secondary-gpa.md)\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /grade-books | List |\n| /grade-books/:subjectYearId | One subject year |\n| /default-grade-weights | Primary default weights list |\n| /default-grade-weights/:masterLevelId | Form for one master level |\n\nTeacher: `/gradebook`, `/gradebook/:subjectYearId`. Secondary teacher gradebook is `/secondary-gradebook` — [secondary-gradebook.md](secondary-gradebook.md).\n\nModules here: grade-weight, grade, gradebook-exam, gradebook-table, student-grade. Secondary and Cambridge modules stay on their pages.\n\n## Primary SA weights\n\nEntity `GradeWeight` (`api_nest/src/modules/grade-weight/entities/grade-weight.entity.ts`): cat1, cat2, cat3, cat4, mye, fye, sa1, sa2, gold, silver, bronze. Form: `bbs/client/src/views/defaultGradeWeights/DefaultGradeWeightForm.jsx`. Schema: `bbs/client/src/views/gradeWeights/gradeWeightSchema.js`.\n\nSemester 1 fields: CAT1, CAT2. Semester 2 fields: CAT3, CAT4. MYE and FYE are separate. SA1 and SA2 are read-only on the form.\n\n    SA1 = CAT1 + CAT2 + MYE\n    SA2 = CAT3 + CAT4 + FYE\n\nSchema: SA1 + SA2 must equal 100. Each CAT/MYE/FYE field 0–100. Medal fields min -1. When none of bronze, silver, gold is -1, bronze < silver < gold.\n\nCopy to other levels: CopyGradeWeight on that form (save first).\n\nJC ids 15–17 still appear on the primary default-grade-weights list (`DefaultGradeWeights.jsx` filters 7–14 only). Secondary UI lists 7–17. Flag: [secondary-gradebook.md](secondary-gradebook.md), [open-questions.md](open-questions.md).\n\nDo not copy Sec/JC FYA or term-component percentages onto this page. Those numbers: [secondary-gradebook.md](secondary-gradebook.md).\n\n[Wiki home](README.md)',
+      userNote: 'Gradebook adalah buku nilai digital tempat guru mencatat dan mengelola nilai siswa untuk tiap mata pelajaran. Guru dapat memasukkan nilai komponen seperti ujian dan tugas, lalu sistem menghitung nilai akhir. Admin mengatur skema dan bobot penilaian, sementara siswa dan orang tua dapat melihat hasilnya.',
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/gradebook', note: 'Primary gradebook list' },
+          { portal: 'teacher', path: '/gradebook/:subjectYearId', note: 'Score sheet per subject-in-year' },
+          { portal: 'teacher', path: '/secondary-gradebook/:subjectYearId', note: 'Secondary gradebook' },
+          { portal: 'teacher', path: '/cambridge-gradebook/igcse', note: 'Cambridge IGCSE gradebook' },
+          { portal: 'teacher', path: '/dca', note: 'Daily classroom assessment' },
+        ],
+        api: {
+          basePath: '/api/v1/gradebookTables',
+          module: 'gradebook-table',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List gradebook tables' },
+            { method: 'GET', path: '/:id', summary: 'Gradebook table with columns/students' },
+            { method: 'POST', path: '/', summary: 'Create gradebook table', fields: ['subjectYearId', 'termId', 'gradeSchemaId'] },
+            { method: 'PUT', path: '/:id', summary: 'Update gradebook table', fields: ['gradeSchemaId'] },
+            { method: 'DELETE', path: '/:id', summary: 'Delete gradebook table' },
+          ],
+        },
+        requiredFields: [
+          { name: 'subjectYearId', type: 'relation → SubjectInYear' },
+          { name: 'termId', type: 'relation → Term' },
+          { name: 'gradeSchemaId', type: 'relation → GradeSchema', note: 'Determines grade banding' },
+        ],
+        notes: [
+          'Scores are entered per student, per subject; weighted via GradeSchema + GradeWeights.',
+          'Cambridge programmes (IGCSE / A-level / AS-level) use separate grading rules.',
+        ],
+      },
     },
     {
       id: 'grade-moderation',
@@ -567,6 +983,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['gradebooks'],
       tags: [],
       wikiFile: 'grade-moderation.md',
+      wiki: '# Grade moderation\n\nAdmin moderation routes. No invented math.\n\nSee also:\n\n- [gradebooks.md](gradebooks.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /moderation/add | Add. File `bbs/client/src/views/moderation/AddModeration.jsx` |\n| /moderation/list | List. Files `ModerationList.jsx`, `ModerationListDetail.jsx` |\n\nModules: grade-moderation, grade-moderation-fye-mye.\n\nThe scattered notes do not give a moderation formula. Do not invent one. Confirm against those modules before treating any UI label as product math.\n\n[Wiki home](README.md)',
+      userNote: 'Grade Moderation adalah proses peninjauan dan penyesuaian nilai sebelum hasil akhir dirilis, memastikan nilai sudah wajar dan konsisten. Guru atau koordinator mata pelajaran memeriksa nilai yang diusulkan dan menyetujui atau mengubahnya. Fitur ini menjaga kualitas dan kewajaran penilaian sebelum dibagikan ke siswa.',
     },
     {
       id: 'secondary-gradebook',
@@ -579,6 +997,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['gradebooks', 'secondary-gpa'],
       tags: [],
       wikiFile: 'secondary-gradebook.md',
+      wiki: '# Secondary gradebook\n\nFYA formula, Sec1-3 vs Sec4-JC component weights, DCA exclusion, GRADEBOOK_SETTINGS, and JC still on the primary list.\n\n## Children\n\n- [secondary-gpa.md](secondary-gpa.md) — /secondary-gpa-gs, /secondary-gpa-su\n- [gradebooks.md](gradebooks.md) — /grade-books, /default-grade-weights, primary SA weights\n\nSee also:\n\n- [cambridge.md](cambridge.md)\n- [grade-moderation.md](grade-moderation.md)\n- [academic-structure.md](academic-structure.md)\n- [open-questions.md](open-questions.md)\n- [certificates.md](certificates.md)\n\nFrom [SECONDARY_GRADEBOOK.md](../SECONDARY_GRADEBOOK.md). Admin settings also described in [Secondary_Grade_Weights_Feature.md](../docs/Secondary_Grade_Weights_Feature.md). Where those two files disagree on versioning or extra fields, flag and read the entity. See [open-questions.md](open-questions.md).\n\n## Formula\n\n    CA1 = weighted T1 + T2\n    CA2 = weighted T3 + T4\n    FYA = CA1 * ca1% + MYE * mye% + CA2 * ca2% + FYE * fye%\n\nDefault FYA weights: CA1 20, MYE 25, CA2 20, FYE 35. Sum MUST be 100. Each weight 0-100. Medal fields: -1 = disabled, else 0-100. Frontend also orders bronze < silver < gold when none of them is -1.\n\n## Master levels\n\nMaster levels 7-17. Tier Sec1-3 (ids 7-12) vs Sec4-JC (13-17):\n\n| ID | Level | Tier |\n| --- | --- | --- |\n| 7 | Secondary 1 Accelerated | Sec1-3 |\n| 8 | Secondary 1 | Sec1-3 |\n| 9 | Secondary 2 Accelerated | Sec1-3 |\n| 10 | Secondary 2 | Sec1-3 |\n| 11 | Secondary 3 Accelerated | Sec1-3 |\n| 12 | Secondary 3 | Sec1-3 |\n| 13 | Secondary 4 Accelerated | Sec4-JC |\n| 14 | Secondary 4 | Sec4-JC |\n| 15 | JC Bridging | Sec4-JC |\n| 16 | Junior College 1 | Sec4-JC |\n| 17 | Junior College 2 | Sec4-JC |\n\n## Tier Sec1-3 components\n\nComponents: TT, BMT, DCA, AA.\n\n| Term | Component | Weight |\n| --- | --- | --- |\n| T1 | Test 1 (TT) | 18.75% |\n| T1 | BMT (BMT) | 18.75% |\n| T1 | DCA T1 (DCA) | 12.5% |\n| T2 | Test 1 (TT) | 18.75% |\n| T2 | Test 2 (TT) | 18.75% |\n| T2 | DCA T2 (DCA) | 12.5% |\n| T3 | Test 1 (TT) | 25% |\n| T3 | BMT (BMT) | 25% |\n| T3 | DCA T3 (DCA) | 12.5% |\n| T4 | AA 1 (AA) | 25% |\n| T4 | DCA T4 (DCA) | 12.5% |\n\n## Tier Sec4-JC\n\n| Term | Component | Weight |\n| --- | --- | --- |\n| T1 | Test 1 (TT) | 25% |\n| T1 | BMT (BMT) | 25% |\n| T1 | DCA T1 (DCA) | 12.5% |\n| T2 | Test 1 (TT) | 25% |\n| T2 | DCA T2 (DCA) | 12.5% |\n| T3 | Test 1 (TT) | 25% |\n| T3 | BMT (BMT) | 25% |\n| T3 | DCA T3 (DCA) | 12.5% |\n| T4 | AA 1 (AA) | 25% |\n| T4 | DCA T4 (DCA) | 12.5% |\n\nDCA exam type is excluded from CA1 and CA2 until the DCA module is live. The DCA cell can still appear in the gradebook table. `GradeExamTypeEnum.AA = 14`. Helpers: `api_nest/src/helpers/default-gradebook-table.helpers.ts` (`isSecondarySec1To3`, `isSecondarySec4ToJC`).\n\n## Settings API\n\nModule: secondary-grade-weight. Entity unique (masterLevelId, subjectId). subjectId NULL is the level default. SQL NULL != NULL, so TypeORM @Unique does not enforce the default row. Service checkDuplicate() with IsNull() enforces it. Duplicate pair returns HTTP 409. Non-secondary masterLevelId returns 400.\n\nPermission: GRADEBOOK_SETTINGS. Admin routes: /secondary-grade-weights, /secondary-grade-weights/:masterLevelId. Files: bbs/client/src/views/secondaryGradeWeights/.\n\n| Method | Path | Action |\n| --- | --- | --- |\n| POST | /v1/secondaryGradeWeights | CREATE |\n| GET | /v1/secondaryGradeWeights | READ, fallback to level default |\n| GET | /v1/secondaryGradeWeights/:id | READ |\n| PUT | /v1/secondaryGradeWeights/:id | UPDATE |\n| DELETE | /v1/secondaryGradeWeights/:id | soft-delete |\n\n`syncMasterLevels()` on primary grade-weight no longer maps ids 7-14. JC ids 15-17 still appear on the primary default-grade-weights list (`DefaultGradeWeights.jsx` filters 7-14 only). Flag that as a split. Secondary UI lists 7-17. See [open-questions.md](open-questions.md).\n\nRelated modules: secondary-grade, student-secondary-grade, grade-weight, grade, grade-dca, gradebook-exam, gradebook-table, student-grade, grade-moderation, grade-moderation-fye-mye, secondary-gpa-grading-scale, secondary-gpa-subject-unit.\n\nTeacher portal has gradebook, secondary-gradebook, cambridge-gradebook, dca. Admin also has /default-grade-weights. Primary SA weights and /grade-books: [gradebooks.md](gradebooks.md). GPA scale/units: [secondary-gpa.md](secondary-gpa.md). Moderation: [grade-moderation.md](grade-moderation.md).\n\n[Secondary_Grade_Weights_Feature.md](../docs/Secondary_Grade_Weights_Feature.md) adds academic-year versioning and term-component CRUD as design. [SECONDARY_GRADEBOOK.md](../SECONDARY_GRADEBOOK.md) does not. Flag if the entity does not match the longer doc. See [open-questions.md](open-questions.md).\n\n[Wiki home](README.md)',
+      userNote: 'Secondary Gradebook adalah buku nilai untuk jenjang secondary yang menggabungkan komponen penilaian seperti CA, MYE, dan FYE sesuai bobot yang berlaku. Guru mengisi nilai tiap komponen, lalu sistem menghitung nilai akhir per mata pelajaran. Admin mengatur bobot dan konfigurasi komponen untuk setiap jenjang dan tahun ajaran.',
     },
     {
       id: 'secondary-gpa',
@@ -591,6 +1011,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['secondary-gradebook'],
       tags: [],
       wikiFile: 'secondary-gpa.md',
+      wiki: '# Secondary GPA\n\nAdmin GPA grading scale and subject unit. FYA math stays on the secondary gradebook page.\n\nSee also:\n\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [gradebooks.md](gradebooks.md)\n- [report-types.md](report-types.md)\n- [prelims.md](prelims.md)\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /secondary-gpa-gs | Grading scale list |\n| /secondary-gpa-gs/new | New scale |\n| /secondary-gpa-gs/:id | Edit scale |\n| /secondary-gpa-su | Subject unit list |\n| /secondary-gpa-su/:masterLevelId/:subjectId | Versions for one level and subject |\n\nModules: secondary-gpa-grading-scale, secondary-gpa-subject-unit.\n\nFiles: `bbs/client/src/views/secondaryGpaGradingScales/`, `bbs/client/src/views/secondaryGpaSubjectUnits/`.\n\n## Form defaults on the scale page\n\n`SecondaryGpaGradingScaleForm.jsx` ships this DEFAULTS array (letterGrade, percentageBreakpoint, gpValue). These are form defaults in that file, not a second FYA formula.\n\n| letterGrade | percentageBreakpoint | gpValue |\n| --- | --- | --- |\n| A | 100 | 4.0 |\n| A- | 89 | 3.75 |\n| B+ | 79 | 3.5 |\n| B | 75 | 3.25 |\n| B- | 72 | 3.0 |\n| C+ | 69 | 2.75 |\n| C | 65 | 2.5 |\n| C- | 62 | 2.25 |\n| D+ | 59 | 2.0 |\n| D | 55 | 1.75 |\n| D- | 52 | 1.5 |\n| E+ | 49 | 1.25 |\n| E | 45 | 1.0 |\n\n## GPA report roll-up\n\n`ReportTypeEnum.GPA` HTML is `createSecondaryStudentGpaReport` in `secondary-gpa-report.helper.ts`. Template `secondary-student-gpa-report.hbs`. Type dispatch: [report-types.md](report-types.md). Do not copy FYA percents onto this page. FYA math: [secondary-gradebook.md](secondary-gradebook.md).\n\n- History: `student.classYears.slice(0, 4)`.\n- Per year: `gpaNumerator` / `gpaDenominator` into that year\'s `gpa`.\n- Cumulative: `cumulativeGpa / classYearInfo.length` stored as `weightedCumulativeGpa`.\n- Cambridge subject (`cambridgeProgramme !== NONE`): `asPredictedPum` when `term == 2`, else `predictedPum`. Term vs level: [prelims.md](prelims.md) Q11.\n- Non-Cambridge academic: `examType == SA` and `term == 2` on the last class year when `term == 2`, else `examType == FYA`.\n- `academicRankClassSize` is encoded as `` `1/${classYear.students.length}` `` with comment `:p`. Encoded quirk, not policy.\n\nGPA report does not read `ReportSetting`. It uses `GpaGradingScale` and `GpaSubjectUnit`.\n\n[Wiki home](README.md)',
+      userNote: 'Secondary GPA menghitung dan menampilkan Grade Point Average (GPA) siswa jenjang secondary berdasarkan nilai mata pelajaran mereka. Fitur ini menyajikan rekap capaian akademik siswa dalam bentuk angka GPA yang mudah dibandingkan. Admin dan guru dapat melihat rekap ini, sementara siswa memantau capaian akademik mereka.',
     },
     {
       id: 'reports',
@@ -603,6 +1025,22 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['report-types', 'report-generate', 'report-settings', 'report-print'],
       tags: [],
       wikiFile: 'reports.md',
+      wiki: '# Reports\n\nIndex of student report snapshots, class-report print, settings, transcripts, and yellow reads. These are not one object. REALTIME_REPORTS_PLAN is a plan.\n\nSee also:\n\n- [primary-reports.md](primary-reports.md)\n- [certificates.md](certificates.md)\n- [spr-sed.md](spr-sed.md)\n- [lo-settings.md](lo-settings.md)\n- [awardees.md](awardees.md)\n- [report-types.md](report-types.md)\n- [report-generate.md](report-generate.md)\n- [report-print.md](report-print.md)\n- [report-settings.md](report-settings.md)\n- [student-transcripts.md](student-transcripts.md)\n- [yellow-reports.md](yellow-reports.md)\n- [secondary-gpa.md](secondary-gpa.md)\n- [leaps.md](leaps.md)\n\n## Object model\n\n| Object | What it is |\n| --- | --- |\n| `StudentReport` | One row per `(student, classYear)`. Parent of `Report` rows. Flag `canViewCertificates`. |\n| `Report` | HTML snapshot keyed by `(studentReportId, reportType, term)`. Enum `ReportTypeEnum`. Flag `canView`. |\n| Class report | Admin `/class-report` print of the same `Report.html` snapshots. SPA ACL `SUBJECT_MODULES.CLASS_REPORT`. |\n| Transcript | Primary 6 PDF from `StudentGrade`. Not a `Report` row. [student-transcripts.md](student-transcripts.md) |\n| Yellow report | Read aggregation of yellow discipline forms. Not a `ReportTypeEnum`. [yellow-reports.md](yellow-reports.md) |\n\nModules (separate folders, not one object): report, report-setting, student-report, student-transcript, yellow-report.\n\n## Generate and print\n\nGenerate: POST `/v1/reports` and POST `/v1/reports/update` both call `reportService.create()`. Details: [report-generate.md](report-generate.md).\n\nPrint: `ReportCard.jsx` reads stored `report.html` through `htmlToPdfmake`. Details: [report-print.md](report-print.md).\n\n## Type matrix\n\n| Type | Page |\n| --- | --- |\n| Enum 1 to 12, helpers, LO rewrite, UI matrix, Handlebars | [report-types.md](report-types.md) |\n| Settings JSON and helper gates | [report-settings.md](report-settings.md) |\n| GPA `ReportTypeEnum.GPA` roll-up | [secondary-gpa.md](secondary-gpa.md) |\n| LEAPS events vs LEAPS report type | [leaps.md](leaps.md) |\n| SPR and SED admin (report types exist, UI unused) | [spr-sed.md](spr-sed.md) |\n| Learning-outcome rewrite source | [lo-settings.md](lo-settings.md) |\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /class-report | Class report. Also /class-report/:classYearId/:term/:reportType |\n| /student-report | Student report |\n| /report-setting | Settings. Also /report-setting/add, /report-setting/:reportSettingId/edit |\n| /student-transcripts | Transcripts |\n\n## Teacher\n\nClassroom term reports: `/classrooms/:classYearId/:term/:reportType`. Classrooms list `/classrooms`, `/classrooms/:classYearId`, `/classrooms/:classYearId/:studentId`. No generate modal.\n\n## Student\n\n`/report`. Cannot generate.\n\n## REALTIME_REPORTS_PLAN is a plan\n\n[REALTIME_REPORTS_PLAN.md](../REALTIME_REPORTS_PLAN.md) is a plan, not a shipped contract. Do not treat on-demand render or finalize/lock as current MUST rules unless code already does that. The plan states reports must not silently rewrite issued records.\n\nGenerate today (that plan, verified architecture): `POST /v1/reports` to `createStudentReport()` to per-type helper to Handlebars to `report.service.ts` saves HTML into `report.html` (frozen snapshot). Print today: `ReportCard.jsx` fetches stored `report.html`.\n\nReport types named there (`api_nest/src/types/enums/report-type.ts`): REPORT_TERM, REPORT_SEMESTER, LEAPS, SED, SPR, FTP, LEARNING_OUTCOME, FTP_EVALUATION, CAMBRIDGE_IGCSE, CAMBRIDGE_ASLEVEL, CAMBRIDGE_ALEVEL, GPA. Separate Primary vs Secondary helpers for term, semester, and GPA. The plan counts 12 types and about 16 variants. Live dispatch: [report-types.md](report-types.md).\n\nProposed (not MUST): `GET /v1/reports/render?studentReportId=&term=&reportType=` without writing to the DB; finalize/lock so issued reports do not change. Timeline in that file is about 11 to 15 weeks for one developer. Do not copy that schedule as a live SLA. That GET does not exist on `report.controller.ts`.\n\n[Wiki home](README.md)',
+      userNote: 'Reports adalah pusat pengelolaan laporan akademik siswa, seperti rapor dan hasil belajar, dalam Smartbag. Fitur ini menyatukan berbagai jenis laporan yang bisa dibuat, dilihat, dan dicetak oleh admin maupun guru. Laporan menampilkan nilai, kehadiran, sikap, dan komentar yang ditujukan untuk siswa dan orang tua.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/student-report', note: 'Student report cards' },
+          { portal: 'admin', path: '/student-transcripts', note: 'Official transcripts' },
+          { portal: 'teacher', path: '/classrooms/:classYearId/:term/:reportType', note: 'Class report by term + type' },
+          { portal: 'student', path: '/report', note: 'Student view of report card' },
+        ],
+        requiredFields: [
+          { name: 'classYearId', type: 'relation → ClassYear' },
+          { name: 'termId', type: 'relation → Term' },
+          { name: 'reportTypeId', type: 'relation → ReportTypes' },
+        ],
+        notes: ['Report generation aggregates grades, attendance and conduct per student for the selected term.'],
+      },
     },
     {
       id: 'report-types',
@@ -615,6 +1053,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['primary-reports', 'yellow-reports', 'spr-sed'],
       tags: [],
       wikiFile: 'report-types.md',
+      wiki: '# Report types\n\n`ReportTypeEnum` (numeric 1 to 12), helper dispatch, Primary vs Secondary split, LO rewrite, and Handlebars inventory.\n\nSee also:\n\n- [reports.md](reports.md)\n- [report-generate.md](report-generate.md)\n- [report-print.md](report-print.md)\n- [report-settings.md](report-settings.md)\n- [lo-settings.md](lo-settings.md)\n- [spr-sed.md](spr-sed.md)\n- [leaps.md](leaps.md)\n- [secondary-gpa.md](secondary-gpa.md)\n- [cambridge.md](cambridge.md)\n- [prelims.md](prelims.md)\n\n## Enum\n\n`api_nest/src/types/enums/report-type.ts`. `REPORT_TERM = 1`, then auto-increment.\n\n| Value | Member |\n| --- | --- |\n| 1 | `REPORT_TERM` |\n| 2 | `REPORT_SEMESTER` |\n| 3 | `LEAPS` |\n| 4 | `SED` |\n| 5 | `SPR` |\n| 6 | `FTP` |\n| 7 | `LEARNING_OUTCOME` |\n| 8 | `FTP_EVALUATION` |\n| 9 | `CAMBRIDGE_IGCSE` |\n| 10 | `CAMBRIDGE_ASLEVEL` |\n| 11 | `CAMBRIDGE_ALEVEL` |\n| 12 | `GPA` |\n\nRemark is not a `ReportTypeEnum` member. Class remark HTML is `createRemarkReport` in `remark-report.helper.ts` with `student-remark-report.hbs`.\n\n## Helper dispatch\n\n`createStudentReport()` in `api_nest/src/helpers/create-report.helper.ts`. Input `reportType` is the enum member name string. Dispatch is `switch (ReportTypeEnum[reportType])`.\n\n| Case | Helper |\n| --- | --- |\n| `FTP` | `createStudentFtpReport` |\n| `SPR` | `createStudentSprReport` |\n| `SED` | `createStudentSedReport` |\n| `LEAPS` | `createStudentLeapsReport` |\n| `REPORT_TERM` | Secondary helper if `[3, 4].includes(masterProgramme.id)`, else `createStudentTermReport` |\n| `REPORT_SEMESTER` | Secondary helper if `[3, 4].includes(masterProgramme.id)`, else `createStudentSemesterReport` |\n| `LEARNING_OUTCOME` | `createLoReport` |\n| `FTP_EVALUATION` | `createStudentFtpEvaluationReport` |\n| `CAMBRIDGE_IGCSE`, `CAMBRIDGE_ASLEVEL`, `CAMBRIDGE_ALEVEL` | `createStudentCambridgeReport` |\n| `GPA` | `createSecondaryStudentGpaReport` |\n| default | `BadRequestException` `Unsupported report type` |\n\n`MasterProgramme` lookup and the `[3, 4]` test run only when the incoming type is `REPORT_TERM` or `REPORT_SEMESTER`. Other types do not branch on `masterProgramme.id`. What names sit on ids 3 and 4 is UNKNOWN from the seeder (ids are not hardcoded there).\n\n## LO rewrite MUST\n\nIf the incoming type is `REPORT_TERM` or `REPORT_SEMESTER`, load `GradingGuide` by `masterLevelId`. If `gradingGuide?.gradingGuideType === GradingGuideTypeEnum.LEARNING_OUTCOME`, set `reportType = ReportTypeEnum[ReportTypeEnum.LEARNING_OUTCOME]` (`"LEARNING_OUTCOME"`) before the switch. Then the `LEARNING_OUTCOME` case runs `createLoReport`. `GradingGuideTypeEnum`: `GRADEBOOK = 1`, `LEARNING_OUTCOME = 2`. Grading-guide module: [other-modules.md](other-modules.md). LO admin: [lo-settings.md](lo-settings.md).\n\n## LEAPS helper\n\n`createStudentLeapsReport`: `StudentLeapsRemark.createQueryBuilder` `.distinctOn([\'slr.leapsEventId\'])`, `orderBy leapsEventId`, then `updatedAt DESC`, then `id DESC`. Newest remark wins. Template `student-leaps-report.hbs`. Event CRUD: [leaps.md](leaps.md).\n\n## GPA helper\n\nRoll-up is encoded in `secondary-gpa-report.helper.ts`. Do not copy FYA percents here. Details: [secondary-gpa.md](secondary-gpa.md). Template `secondary-student-gpa-report.hbs`.\n\n## listReportsByTerm UI matrix\n\n`bbs/client/src/utils/utilFunctions.js` `listReportsByTerm(term, level, opts)`. `hideFtp` drops FTP from `commonReports`. Admin generate modal sets `{ hideFtp: isSecondary }` when `classYear.level` starts with `SECONDARY` or `JUNIOR_COLLEGE`. SED is commented out in that helper. SPR is commented out.\n\n| Term | Types offered |\n| --- | --- |\n| 1 | FTP unless `hideFtp`, plus `REPORT_TERM` |\n| 3 | Same as term 1 |\n| 2 | FTP unless `hideFtp`; `GPA` if level includes `COLLEGE` or `SECONDARY`; `REPORT_SEMESTER`; plus `CAMBRIDGE_ASLEVEL` when `level === "JUNIOR_COLLEGE2"` |\n| 4 | FTP unless `hideFtp`; `GPA` if level includes `COLLEGE` or `SECONDARY`; `REPORT_SEMESTER`; `FTP_EVALUATION`; `LEAPS`; plus `CAMBRIDGE_ALEVEL` when `JUNIOR_COLLEGE2`; plus `CAMBRIDGE_IGCSE` when `SECONDARY4` or `JUNIOR_COLLEGE1` |\n| other | `[]` |\n\nGenerate modal (`ModalGenerateReport.jsx`) then `.filter((r) => r?.reportType !== "FTP_EVALUATION")`, so `FTP_EVALUATION` never appears in the update-report checklist even on term 4.\n\n`ReportCard.jsx` stored-html list drops `LEARNING_OUTCOME`, `SED`, and `SPR` (comments: unused, LO shown as progress). `ReportList.jsx` sort list also comments out `SED` and `SPR`.\n\nTeacher SPR and SED SPA routes are commented as of 2026-09-02. See [spr-sed.md](spr-sed.md). Helpers and templates for SPR and SED still exist.\n\n## Handlebars inventory\n\nDirectory `api_nest/src/templates/student-reports/`.\n\n| File | Helper reference |\n| --- | --- |\n| `student-progress-report.hbs` | `progress-report.helper.ts` |\n| `secondary-student-progress-report.hbs` | `secondary-progress-report.helper.ts` |\n| `student-semester1-report-p3-6.hbs` | `semester-report.helper.ts` (primary semester 1) |\n| `student-semester1-report-sec.hbs` | `semester-report.helper.ts` (non-primary semester 1) |\n| `student-semester2-report.hbs` | `semester-report.helper.ts` (semester 2) |\n| `secondary-semester1-mye-report.hbs` | `secondary-semester-report.helper.ts` |\n| `secondary-semester1-report.hbs` | `secondary-semester-report.helper.ts` |\n| `secondary-semester2-mye-report.hbs` | `secondary-semester-report.helper.ts` |\n| `secondary-semester2-report.hbs` | `secondary-semester-report.helper.ts` |\n| `student-learning-outcome-report.hbs` | `lo-report.helper.ts` |\n| `student-learning-outcome-report-odd-term.hbs` | `lo-report.helper.ts` |\n| `student-learning-outcome-footer.hbs` | `lo-report.helper.ts` |\n| `student-ftp-report.hbs` | `ftp-report.helper.ts` |\n| `student-ftp-evaluation-report.hbs` | `ftp-evaluation-report.helper.ts` |\n| `student-leaps-report.hbs` | `leaps-report.helper.ts` |\n| `student-spr-report.hbs` | `spr-report.helper.ts` (UI unused) |\n| `student-sed-report.hbs` | `sed-report.helper.ts` (UI unused) |\n| `student-cambridge-report.hbs` | `cambridge-report.helper.ts` |\n| `student-a-level-prelim-report.hbs` | `cambridge-report.helper.ts` |\n| `secondary-student-gpa-report.hbs` | `secondary-gpa-report.helper.ts` |\n| `report-letter.hbs` | `report-letter.helper.ts` |\n| `student-remark-report.hbs` | `remark-report.helper.ts` (not a `ReportTypeEnum`) |\n| `student-transcript.hbs` | `transcript-pdf.helper.ts` (not a `Report` row) |\n| `student-transcript-pik.hbs` | `transcript-pdf.helper.ts` (not a `Report` row) |\n\nUnused (no `.ts` or `.js` helper reference):\n\n| File |\n| --- |\n| `student-gpa-transcript.hbs` |\n| `student-mid-gpa-report.hbs` |\n| `student-as-prelim-report.hbs` |\n| `student-semester1-report-p1-2.hbs` |\n| `index.html` |\n\n[Wiki home](README.md)',
+      userNote: 'Report Types mengatur jenis-jenis laporan yang tersedia, misalnya laporan primary, secondary, maupun tipe khusus lainnya. Admin menentukan format dan komponen apa saja yang muncul di tiap jenis laporan. Fitur ini memungkinkan sekolah menyesuaikan laporan dengan kebutuhan jenjang dan kurikulum masing-masing.',
     },
     {
       id: 'report-generate',
@@ -627,6 +1067,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['reports'],
       tags: [],
       wikiFile: 'report-generate.md',
+      wiki: '# Report generate\n\nHow a `Report` HTML snapshot is created. Both generate POST routes call `reportService.create()`.\n\nSee also:\n\n- [reports.md](reports.md)\n- [report-types.md](report-types.md)\n- [report-print.md](report-print.md)\n- [report-settings.md](report-settings.md)\n- [student-transcripts.md](student-transcripts.md)\n\n## Routes\n\n`api_nest/src/modules/report/report.controller.ts`. Timeout `@SetRequestTimeout(60000)` on both POSTs.\n\n| Method | Path | ACL on controller | Service |\n| --- | --- | --- | --- |\n| POST | `/v1/reports` | no `@CheckPermissions` | `reportService.create()` |\n| POST | `/v1/reports/update` | `STUDENT_REPORT` UPDATE, VIEW, READ | `reportService.create()` |\n\nThere is no `GET /v1/reports/render`. That path is a plan only. See [reports.md](reports.md).\n\n`report.service.ts` also defines `updateGeneratedReport()`. The `/update` controller method does not call it. Both live POSTs call `create()`.\n\n## Unique key and overwrite\n\nLookup existing row: `Report.findOneBy({ studentReport: { id: studentReportId }, reportType: ReportTypeEnum[options.reportType], term: options.term })`.\n\nIf a row exists, `create()` calls `this.update(id, callerUserId, { html, weightedAverage })`. No new row. `update()` sets `html` when provided. `weightedAverage` is written only when the incoming value is truthy, `>= 0`, and different from the stored value. There is no `Unique()` decorator on that triple. Uniqueness is this find-then-update.\n\nNo finalize or lock. `Report.reportStatus` is commented out. `ReportStatusTypeEnum` (`ON_PROGRESS`, `DONE`) exists and is unused on the entity.\n\n## Terms\n\n`VALID_TERMS = [1, 2, 3, 4]`. Other terms throw `InvalidReportTermError`. Backend `create()` does not read `academicYear.termNStartDate`.\n\nAdmin UI `validateTerm` in `StudentReports.jsx` compares `moment().unix()` to `academicYear.term1StartDate` through `term4StartDate`. Client-only.\n\n## Homeroom and student status\n\nHomeroom-only generate is commented out in `report.service.ts` (`OnlyHomeroomTeacherAllowedToFillStudentReport`). Same comment in `student-report.service.ts` create.\n\nGenerate UI lists students with `activeStatus: "ACTIVE"` (`ModalGenerateReport.jsx`, `StudentReports.jsx` `studentsQuery`). Backend `create()` does not check student `CURRENT` or `ACTIVE`. Do not treat CURRENT plus ACTIVE as a report MUST.\n\n## StudentReport prerequisite\n\nAdmin generate builds jobs only from existing `StudentReport` rows for the selected class year. `postStudentReport` create-if-missing is commented out in `StudentReports.jsx`. Missing `studentReportId` yields `NoStudentReportFoundError`.\n\n`StudentReport` create (`POST /v1/studentReports`) requires the student on `classYear.students`. Else `StudentNotInClassYearError` (`\'Student not registered in class year\'`). Duplicate `(student, classYear)` throws `StudentReportAlreadyExistsError` via `checkDuplicate`. One `StudentReport` per `(student, classYear)`. No `Unique()` decorator.\n\n## Client split, same create()\n\nAdmin `generateReport()`:\n\n| Types | Client action | HTTP |\n| --- | --- | --- |\n| `CAMBRIDGE_IGCSE`, `CAMBRIDGE_ASLEVEL`, `CAMBRIDGE_ALEVEL` | `createReportSilent` | POST `/v1/reports` |\n| all other selected types | `updateGeneratedReportSilent` | POST `/v1/reports/update` |\n\nBoth hit `reportService.create()`.\n\n## A-level exclusion\n\n`banding.excludeFromAlevelReportStudentIds` is applied only when `reportType === ReportTypeEnum.CAMBRIDGE_ALEVEL`. Helper `getExcludedAlevelSubjectYearIds` in `cambridge-report-exclusion.helper.ts`. Other Cambridge types ignore that array.\n\n## Who generates\n\n| Actor | Generate |\n| --- | --- |\n| Admin | Update Report modal. Button gated `BBSCan I={ACTION_MODULES.VIEW} a={SUBJECT_MODULES.STUDENT_REPORT}`. |\n| Teacher | No `ModalGenerateReport`. Classroom print can still `POST /v1/reports` for Cambridge and combined term 4. |\n| Student | Cannot generate. `/report` reads stored rows. |\n\n[Wiki home](README.md)',
+      userNote: 'Report Generate adalah fitur untuk membuat laporan siswa secara otomatis berdasarkan data nilai dan pengaturan yang sudah ada. Guru atau admin memilih siswa, kelas, atau periode, lalu sistem menghasilkan laporan lengkap yang siap dilihat. Fitur ini menghemat waktu karena tidak perlu menyusun laporan secara manual.',
     },
     {
       id: 'report-settings',
@@ -639,6 +1081,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['thresholds', 'document-templates'],
       tags: [],
       wikiFile: 'report-settings.md',
+      wiki: '# Report settings\n\nPer-level, per-academic-year JSON used by some report helpers. GPA does not read this entity.\n\nSee also:\n\n- [reports.md](reports.md)\n- [report-types.md](report-types.md)\n- [report-generate.md](report-generate.md)\n- [report-print.md](report-print.md)\n- [secondary-gpa.md](secondary-gpa.md)\n- [lo-settings.md](lo-settings.md)\n\n## Entity\n\n`api_nest/src/modules/report-setting/entities/report-setting.entity.ts`. Controller prefix `reportSettings`.\n\n| Field | Notes |\n| --- | --- |\n| `masterLevelId` | Indexed. Nullable int. |\n| `academicYearId` | Indexed. Nullable int. |\n| `isDefault` | `bool`, default `false`. |\n| `showUngradedSubject` | `bool`, default `true`. |\n| `level` | Legacy `CohortLevelTypeEnum`, nullable. `syncMasterLevels` maps it onto `masterLevel`. |\n| `setting` | JSON `ReportSettingType`. |\n\n`setting` keys: `markingTypes` (`numericalGradeDescriptor`, `letterGradeDescriptor`), `semesteralReportFields`, `coverLetters`, `weightedMasterSubjects`, `attendances`.\n\n## Uniqueness and default\n\nCreate calls `checkReportSettingAvailability`: one row per `(masterLevelId, academicYearId)`. Duplicate throws `ReportSettingAlreadyExistError`.\n\n`isDefault` is exclusive per `masterLevelId`. Create or update with `isDefault === true` sets any other default for that `masterLevelId` to `false`.\n\n## Routes\n\n| Method | Path | Notes |\n| --- | --- | --- |\n| POST | `/v1/reportSettings` | Create. ACL `REPORT_SETTING` CREATE. |\n| GET | `/v1/reportSettings` | List. ACL READ. |\n| GET | `/v1/reportSettings/letter` | Cover letter HTML. ACL READ. Client `getReportLetter`. |\n| GET | `/v1/reportSettings/syncMasterLevels` | `@Public()`. Maps legacy `level` to `masterLevel`. |\n| GET | `/v1/reportSettings/:id` | One. ACL READ. |\n| PUT | `/v1/reportSettings/:id` | Update. ACL UPDATE. |\n| PUT | `/v1/reportSettings/copy/:id` | Copy `setting` and `isDefault` onto other `masterLevelIds` for a target academic year. ACL UPDATE. |\n| DELETE | `/v1/reportSettings/:id` | ACL DELETE. |\n\nLetter picker: settings for `masterLevelId`, then the row with `isDefault === true` or `academicYear.id` matching the class year. `createReportLetter` reads `setting.coverLetters` for that term.\n\n## Gate: which helpers consume which fields\n\n| Helper | Fields read |\n| --- | --- |\n| `progress-report.helper.ts` | `showUngradedSubject`, `setting.markingTypes`, `setting.attendances`, `setting.weightedMasterSubjects` |\n| `semester-report.helper.ts` | `showUngradedSubject`, `setting.markingTypes.letterGradeDescriptor`, `setting.attendances`, `setting.weightedMasterSubjects`, `setting.semesteralReportFields` |\n| `secondary-progress-report.helper.ts` | `showUngradedSubject`, `setting.attendances`, `setting.markingTypes` |\n| `secondary-semester-report.helper.ts` | `showUngradedSubject` |\n| `lo-report.helper.ts` | `showUngradedSubject`, `setting.attendances` |\n| `report-letter.helper.ts` | `setting.coverLetters` |\n\nNot consumed by FTP, SPR, SED, LEAPS, Cambridge, or GPA helpers. GPA uses `GpaGradingScale` and `GpaSubjectUnit`. See [secondary-gpa.md](secondary-gpa.md).\n\nHelpers pick a setting with `isDefault === true` or `academicYear.id` matching the student class year.\n\n[Wiki home](README.md)',
+      userNote: 'Report Settings adalah pengaturan yang menentukan bagaimana laporan siswa dibuat dan ditampilkan, seperti komponen yang disertakan dan formatnya. Admin mengonfigurasi pengaturan ini per sekolah, jenjang, atau periode sehingga laporan sesuai kebijakan sekolah. Fitur ini memastikan setiap laporan konsisten dan mengikuti standar yang ditetapkan.',
     },
     {
       id: 'report-print',
@@ -651,6 +1095,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['reports'],
       tags: [],
       wikiFile: 'report-print.md',
+      wiki: '# Report print\n\nPrint uses stored `report.html`, not a live render endpoint. Conversion is `html-to-pdfmake`.\n\nSee also:\n\n- [reports.md](reports.md)\n- [report-types.md](report-types.md)\n- [report-generate.md](report-generate.md)\n- [report-settings.md](report-settings.md)\n- [certificates.md](certificates.md)\n\n## Stored HTML\n\nAdmin `bbs/client/src/views/studentReports/ReportCard.jsx` maps `studentReport.reportsIds` for the selected term. Each `Report.html` is passed to `htmlToPdfmake`. There is no `GET /v1/reports/render`.\n\nFilter out `LEARNING_OUTCOME`, `SED`, and `SPR` before print. Sort with `sortingPreference = ["REPORT_TERM", "REPORT_SEMESTER", "LEAPS", "FTP"]` via lodash `sortBy` plus `indexOf`. Types not in that list sort after.\n\n## Cover letter terms 1 and 3\n\nWhen `term` is 1 or 3, `generateReports` dispatches `fromApi.getReportLetter` (`GET /v1/reportSettings/letter`) with `classYearId`, `level`, `masterLevelId`, `term`. Non-empty `html` becomes the first PDF blob (`generateLetter`). Term 2 and term 4 skip this letter fetch.\n\n## Term 4 finalReport\n\nWhen `term === 4`, `finalReport()` runs instead of per-type `compilePdf`. It `createReport`s `REPORT_SEMESTER` (even term), `FTP_EVALUATION`, and `LEAPS`, joins HTML with a page-break heading, then merges Cambridge PDFs. Needs an existing `StudentReport` for that class year.\n\n## A5 to A4 scale\n\nCombined (A4) print upsizes A5-tuned semester HTML. `A5_BASE_FONT = 9`, `A4_BASE_FONT = 12`, `A5_TO_A4_SCALE = A4_BASE_FONT / A5_BASE_FONT`. `upsizeSemesterContentToA4` scales a node with `fontSize === 9` and `lineHeight === 0.85`. Single-report A5 views in `ReportList.jsx` and class-report viewers do not use this scale.\n\n## canView vs canViewCertificates\n\n| Flag | Default | Toggle |\n| --- | --- | --- |\n| `Report.canView` | `false` | POST `/v1/reports/disable-undisable-view-report` (`disableUndisableViewReport`). Sets `canView` by term, optional `studentReportId`, `classYearId`, or campus plus academic year. |\n| `StudentReport.canViewCertificates` | `false` | POST `/v1/studentReports/toggle-view-certificate`. Different column, different route. |\n\nStudent `/report` shows a type only when that `Report.canView` is true.\n\n## Teacher and admin class report\n\nTeacher `bbs/client-teacher/src/views/classrooms/viewer/ClassReportViewer.jsx` at `/classrooms/:classYearId/:term/:reportType`. Same stored snapshots, `htmlToPdfmake`, same `sortingPreference`.\n\nAdmin class report is gated `SUBJECT_MODULES.CLASS_REPORT` (`"ClassReport"`) on `/class-report` and `/class-report/:classYearId/:term/:reportType`. Viewer `bbs/client/src/views/classReports/ClassReportViewer.jsx`. Same `Report.html` snapshots. `ModulesTypeEnum` on the API has `STUDENT_REPORT`, not `CLASS_REPORT`.\n\n[Wiki home](README.md)',
+      userNote: 'Report Print adalah fasilitas untuk mencetak laporan siswa, baik secara perorangan maupun massal, dalam bentuk file siap cetak. Admin atau guru dapat memilih siswa atau kelas lalu menghasilkan dokumen laporan untuk dicetak atau dibagikan. Fitur ini memudahkan distribusi rapor kepada siswa dan orang tua.',
     },
     {
       id: 'primary-reports',
@@ -663,6 +1109,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['reports'],
       tags: [],
       wikiFile: 'primary-reports.md',
+      wiki: '# Primary reports\n\nPrimary competency grades, homeroom reports, FTP, SPR, SED, and conduct remarks.\n\n## Children\n\n- [lo-settings.md](lo-settings.md): learning outcomes, in-years, grade settings, analyses; bulk-update rules\n- [spr-sed.md](spr-sed.md): /spr, /spr-grade-setting, /sed; teacher /spr, /sed\n- [reports.md](reports.md): class/student reports, settings, transcripts (index)\n- [report-types.md](report-types.md): `ReportTypeEnum`, helpers, LO rewrite, Handlebars\n- [report-generate.md](report-generate.md): POST create snapshot\n- [report-print.md](report-print.md): stored html print\n- [report-settings.md](report-settings.md): `ReportSetting` JSON and helper gates\n- [student-transcripts.md](student-transcripts.md): Primary 6 transcript, not a `Report` row\n- [yellow-reports.md](yellow-reports.md): yellow form read API\n- [awardees.md](awardees.md): LOWER/UPPER/SUBJECT/PQP\n\nSee also:\n\n- [certificates.md](certificates.md)\n- [academic-structure.md](academic-structure.md)\n- [sources.md](sources.md)\n\n## Modules\n\nModules: learning-outcome, learning-outcome-year, learning-outcome-analysis, learning-outcome-certificate, learning-indicator, learning-indicator-grade, lo-grade-setting, lo-year-learning-outcome, ftp-evaluation-setting, ftp-grade-master-subject, ftp-grade-setting, ftp-report-content, ftp-report-table, spr-component, spr-grade-master-subject, spr-grade-setting, student-spr, sed, sed-activity, sed-competency, sed-indicator, student-sed, conduct, student-ftp-conduct, secondary-verify-conduct, remark, yellow-report, student-report, report, report-setting.\n\nPortals: admin configures outcomes and report settings. Teacher enters indicator grades, FTP, SPR, SED, conduct. Student reads `/report`.\n\n`learning-outcome-year` bulk-update rules (in-batch duplicate check, merge when moved onto an existing combination, normalize IDs, skip `checkDuplicate` when the combination did not change, reload relations, MUST load `learningIndicators` and `learningOutcomes` on GET, MUST NOT compare string IDs to numeric IDs): [lo-settings.md](lo-settings.md) from [LOGIC_CHANGES_SUMMARY.md](../LOGIC_CHANGES_SUMMARY.md).\n\nAwardees view rules: [awardees.md](awardees.md).\n\n[REALTIME_REPORTS_PLAN.md](../REALTIME_REPORTS_PLAN.md) is a plan, not a shipped contract. See [reports.md](reports.md). Do not treat on-demand render or finalize/lock as current MUST rules unless code already does that. The plan states reports must not silently rewrite issued records.\n\n[Wiki home](README.md)',
+      userNote: 'Primary Reports adalah laporan untuk siswa jenjang primary yang menampilkan capaian belajar, sikap, dan perkembangan siswa secara menyeluruh. Guru mengisi nilai dan komentar, lalu laporan dirangkum sesuai format primary. Fitur ini ditujukan untuk kebutuhan pelaporan orang tua di tingkat sekolah dasar.',
     },
     {
       id: 'yellow-reports',
@@ -675,6 +1123,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['reports'],
       tags: [],
       wikiFile: 'yellow-reports.md',
+      wiki: '# Yellow reports\n\nRead API over yellow discipline forms. Not a `ReportTypeEnum` member and not a `Report` row.\n\nSee also:\n\n- [secondary-discipline.md](secondary-discipline.md)\n- [discipline.md](discipline.md)\n- [reports.md](reports.md)\n\n## Route\n\n`GET /v1/yellowReports/students/:studentId`. Query: `academicYearId`, `semester`. ACL READ on `ModulesTypeEnum.SECONDARY_DISCIPLINE_REPORT`. Service `YellowReportService.getReportForStudent`.\n\nNo `entities/` folder under `yellow-report`. Aggregation only.\n\n## Aggregation\n\nLoads `SecondaryDisciplineForm` where `formType === SecondaryDisciplineFormTypeEnum.YELLOW` (`\'YELLOW\'`), matching `studentId`, `academicYearId`, and terms from `getTermsForSemester(semester)`.\n\n`printDate` comes from `MeritReportSetting.printDate` for that campus, academic year, and semester, else `new Date()`.\n\n`totalPoints` is the sum of `form.point` (row field `point`, default 0).\n\nYellow and merit form CRUD stays on [secondary-discipline.md](secondary-discipline.md). Do not duplicate it here.\n\n[Wiki home](README.md)',
+      userNote: 'Yellow Reports adalah format laporan khusus siswa yang disusun mengikuti tata letak dan kebutuhan pelaporan tertentu sekolah. Guru dan admin dapat menghasilkan laporan ini berdasarkan data nilai dan informasi siswa yang sudah tersimpan. Fitur ini memudahkan pembuatan laporan dengan tampilan standar yang seragam.',
     },
     {
       id: 'spr-sed',
@@ -687,6 +1137,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['reports'],
       tags: [],
       wikiFile: 'spr-sed.md',
+      wiki: '# SPR and SED\n\nStudent Progress Report and Social Emotional Development admin routes. Teacher paths exist in source and are commented out.\n\nSee also:\n\n- [primary-reports.md](primary-reports.md)\n- [certificates.md](certificates.md)\n- [reports.md](reports.md)\n- [lo-settings.md](lo-settings.md)\n\n## Admin\n\n| Route | Notes |\n| --- | --- |\n| /spr | SPR |\n| /spr-grade-setting | SPR grade setting. Also /spr-grade-setting/add, /spr-grade-setting/edit/:academicYearId |\n| /sed | SED. Also /sed/add, /sed/:sedId/edit, /sed/:sedId |\n\n## Teacher\n\n`bbs/client-teacher/src/routes.js` still imports SPR and SED views. The routes themselves are commented with `TODO: Temporary commented, will be used later` (as of 2026-09-02):\n\n| Route | Name in that file |\n| --- | --- |\n| /spr | SPR |\n| /spr/:classYearId/:academicYearId | Add SPR |\n| /sed | Social Emotional Development |\n| /sed/:classYearId/:academicYearId | Add SED |\n\nHomeroom flag on those commented blocks: `requireHomeroom: true`.\n\nTeacher FTP is wired as `/ebadges` and `/ebadges/:classYearId/:academicYearId` (FTP / FTPDetail components), not as `/ftp`. Admin `/ftp` routes are also commented in `bbs/client/src/routes.js`.\n\n## Modules\n\nSPR: spr-component, spr-grade-master-subject, spr-grade-setting, student-spr.\n\nSED: sed, sed-activity, sed-competency, sed-indicator, student-sed.\n\nFTP (related, still listed on [primary-reports.md](primary-reports.md)): ftp-evaluation-setting, ftp-grade-master-subject, ftp-grade-setting, ftp-report-content, ftp-report-table.\n\nNo extra SPR/SED numeric formulas in the scattered notes. Do not invent them. [REALTIME_REPORTS_PLAN.md](../REALTIME_REPORTS_PLAN.md) Phase 3 says SED/SPR appear unused — confirm before skipping; that file is a plan.\n\n[Wiki home](README.md)',
+      userNote: 'SPR (Student Progress Report) dan SED (Student Examination Document) adalah dokumen pelaporan perkembangan dan hasil ujian siswa. Guru dan admin mengisi serta mengelola isi kedua dokumen ini untuk tiap siswa. Fitur ini menyediakan catatan resmi kemajuan dan pencapaian siswa yang dapat dibagikan kepada orang tua.',
     },
     {
       id: 'thresholds',
@@ -699,6 +1151,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['report-settings'],
       tags: [],
       wikiFile: 'thresholds.md',
+      wiki: '# Thresholds\n\nCambridge grade-boundary thresholds. Two types, two admin routes, DRAFT then ACTIVE.\n\nSee also:\n\n- [cambridge.md](cambridge.md)\n- [cambridge-pum.md](cambridge-pum.md)\n- [prelims.md](prelims.md)\n- [sve.md](sve.md)\n- [open-questions.md](open-questions.md)\n\nFrom [Threshold_Feature_Documentation.md](../docs/Threshold_Feature_Documentation.md) and the threshold section that lived on [cambridge.md](cambridge.md). Five-table model: [cambridge.md](cambridge.md). PUM after a letter is chosen: [cambridge-pum.md](cambridge-pum.md).\n\n## Types\n\n| Type | Admin route | Subject filter | Component filter |\n| --- | --- | --- | --- |\n| IGCSE_ALEVEL | /threshold | IGCSE + ALEVEL | All master SVE components |\n| AS_PRELIM | /threshold-as-prelim | ALEVEL only | isAlsoAsLevel true only |\n\nPage titles: Threshold IGCSE/A Level vs Threshold AS Prelim. Files: `bbs/client/src/views/threshold/Threshold.jsx`, `ThresholdAsPrelim.jsx`.\n\n## Status\n\nThreshold status: DRAFT or ACTIVE. Creating a draft removes previous drafts for the same subject and type, writes threshold configs, and calculates initial `avgValue`. Activating a draft archives the previous active row for that subject and type (soft-delete previous active, then promote).\n\nModules: threshold, threshold-config, syllabus, syllabus-component, grade-schema, master-sve-component, student-cambridge-grade.\n\n## Entity fields (threshold)\n\nFrom that feature note:\n\n| Column | Type | Description |\n| --- | --- | --- |\n| id | int | Primary key |\n| subjectId | int | FK to Subject |\n| effectiveFrom | int | Start year of validity |\n| effectiveTo | int | End year of validity |\n| statusType | enum | DRAFT or ACTIVE |\n| thresholdType | enum | IGCSE_ALEVEL or AS_PRELIM |\n| avgValue | jsonb | Calculated average grades, e.g. `{a*: 90, a: 85, b: 75, ...}` |\n\nThresholdConfig links a threshold to syllabus years (`thresholdId`, `syllabusId`, `year`).\n\n## Weighted average used for avgValue\n\nFrom [Threshold_Feature_Documentation.md](../docs/Threshold_Feature_Documentation.md) `syncAvgGradeYear()` / `handleCalculateSyllabusComponentGrade`:\n\n1. Extract `Weight` and `TotalMarks` for each grid row.\n2. For each grade tier (a*, a, b, c, d, e): `weighted_value = (grade_value / total_marks) * weight`.\n3. Sum across components.\n4. Divide by the number of syllabi in the threshold.\n\nGrading itself reads the ACTIVE `avg_value`, not the per-paper a*, a, b cells. Flag: [cambridge.md](cambridge.md), [open-questions.md](open-questions.md).\n\n## API (threshold)\n\n| Method | Path | Action |\n| --- | --- | --- |\n| GET | /v1/threshold/subject/:subjectId | Get by subject (query: thresholdType) |\n| POST | /v1/threshold | Create draft |\n| POST | /v1/threshold/active | Activate draft |\n| PATCH | /v1/threshold/:id | Update |\n| DELETE | /v1/threshold/:id | Soft-delete |\n\nRelated syllabus and master-sve-component endpoints are listed in the feature note. Do not invent extra math here.\n\nPortals: admin owns `/threshold` and `/threshold-as-prelim`. Teacher does not configure thresholds. Student does not.\n\n[Wiki home](README.md)',
+      userNote: 'Thresholds adalah pengaturan batas nilai yang menentukan kategori capaian atau predikat siswa, misalnya batas untuk grade A, B, atau C. Admin mengatur batas-batas ini untuk tiap mata pelajaran atau jenjang. Fitur ini memastikan penilaian dan pelaporan konsisten dengan standar sekolah.',
     },
     {
       id: 'prelims',
@@ -711,6 +1165,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['gradebooks'],
       tags: [],
       wikiFile: 'prelims.md',
+      wiki: '# Prelims\n\nPRELIMS_QNA answers and the migration constraint. Plan file is a plan.\n\nSee also:\n\n- [cambridge.md](cambridge.md)\n- [thresholds.md](thresholds.md)\n- [cambridge-pum.md](cambridge-pum.md)\n- [open-questions.md](open-questions.md)\n\nFrom [PRELIMS_QNA.md](../PRELIMS_QNA.md). Migration plan (not shipped as a contract): [PRELIMS_MIGRATION_PLAN.md](../PRELIMS_MIGRATION_PLAN.md). Model: [cambridge.md](cambridge.md).\n\n## Binding constraint\n\n`student_cambridge_grade.syllabus_component_id` is NOT NULL. A paper mark can only be stored if that subject\'s syllabus for that year has a grid row for the paper carrying a Total Marks cell. Migration and live entry both need that cell. All 448 existing rows in the plan note point at a Total Marks cell.\n\nQ2 answered option (d): copy Total Marks from a neighbouring year of the same subject where possible, skip the rest, and report exactly what was copied and skipped. Do not invent Weight / Total Marks. Inventing them changes computed grades.\n\n## predicted_pum\n\nQ1 answered option (b): store `predicted_pum` as max(prelim PUM, FYA).\n\nGPA Cambridge branch (`cambridgeProgramme != NONE`) reads `predicted_pum` or `as_predicted_pum` directly, with no extra max and no fallback. Non-Cambridge uses max(FYA, PUM from FYA).\n\nExample recorded in that Q&A: Aaron 2023/2024 Biology FYA 82 vs prelim PUM 80; transcript 82, which is the max.\n\nRoll-up columns from [PRELIMS_MIGRATION_PLAN.md](../PRELIMS_MIGRATION_PLAN.md) (status: plan only):\n\n| Threshold type | ACTUAL | PRELIMINARY / PREDICTED |\n| --- | --- | --- |\n| IGCSE_ALEVEL (IGCSE, A Level) | grade_mark, final_grade, pum | predicted_grade_mark, predicted_final_grade, predicted_pum |\n| AS_PRELIM (AS only) | grade_mark, final_grade, as_pum | predicted_grade_mark, predicted_final_grade, as_predicted_pum |\n\n`grade_type` ∈ PRELIMINARY / PREDICTED / ACTUAL.\n\n## Q11 term vs level\n\nQ11 in [PRELIMS_QNA.md](../PRELIMS_QNA.md): code currently selects by term, not by level.\n\n    subjectFinalMark = term == 2 ? studentGrade.asPredictedPum : studentGrade.predictedPum\n\nTerm 2 gets the AS column; every other term gets `predicted_pum`. No master-level test and no fallback when the chosen column is empty.\n\nThat file records the answer as: leave as is; the term-based selection is correct; no change made. The catalog still flags the mismatch with the level-based description (Secondary IGCSE vs JC AS/A Level). See [open-questions.md](open-questions.md).\n\n## Academic year\n\nQ3 answered: follow `academic_year_id` as migrated; do not pin to AY22. Effective from/to is no longer used for lookup.\n\n## Source volumes (plan note)\n\n`subjectprelims` 40 rows. `classsubjectprelims` 1,725. `enrollprelims` 22,962. 2,322 distinct students, academic years 20–26. Proposed tag `src_db = 23`. Status on that file: plan only — nothing written to any database yet.\n\n[Wiki home](README.md)',
+      userNote: 'Prelims adalah pengelolaan ujian awal (preliminary exams) untuk jenjang secondary, termasuk penjadwalan, input nilai, dan rekap hasilnya. Guru memasukkan nilai prelims, lalu sistem mengolahnya sebagai bagian dari penilaian. Admin mengatur jadwal dan memastikan data prelims tersedia untuk laporan.',
     },
     {
       id: 'sve',
@@ -723,18 +1179,123 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve-timetable', 'sve-grade-input', 'sve-lock', 'sve-item-analysis', 'sve-printing', 'sve-files'],
       tags: [],
       wikiFile: 'sve.md',
+      wiki: '# SVE\n\nSchool-based Validated Examination. Index of the object model and encoded child pages. Printing counts stay on the printing child.\n\nSee also:\n\n- [sve-lock.md](sve-lock.md)\n- [sve-timetable.md](sve-timetable.md)\n- [sve-grade-input.md](sve-grade-input.md)\n- [sve-item-analysis.md](sve-item-analysis.md)\n- [sve-files.md](sve-files.md)\n- [sve-printing.md](sve-printing.md)\n- [thresholds.md](thresholds.md)\n- [cambridge.md](cambridge.md)\n- [analytics.md](analytics.md)\n\n## Object model\n\n| Object | What it is |\n| --- | --- |\n| `Sve` | One component instance for `(subject, academicYear, masterLevel, masterSveComponent)`. Extra paper types sit on join table `sve_additional_paper`. |\n| `SveExamType` | That `Sve` plus one `MasterSveExamType`. Holds setter, vetter, expert, exam date and time, `lockDocument`, `lockAssignee`. |\n| `SveDeadline` | One row for academic year, programme, master exam type, and `masterLevelsIds`. Flags `isLocked` (default true) and `lockedAt`. |\n| `SveDocument` | A file on one exam type. Status enum. History rows. Auto-send date. [sve-files.md](sve-files.md) |\n| `SveStudentGrade` | Answers JSON plus totals for `(studentId, sveExamTypeId, classroomId)`. [sve-grade-input.md](sve-grade-input.md) |\n| `SveItemAnalysisAnswer` | Key answer for one `(sveExamTypeId, masterSvePaperTypeId, questionNumber)`. [sve-item-analysis.md](sve-item-analysis.md) |\n| `SveExamTimetableSession` | Named session slot with `timeStart`, `timeEnd`, `number`, `group`. [sve-timetable.md](sve-timetable.md) |\n| `SveCoverPage` and `SveCoverTemplate` | Cover HTML and lexical state. [sve-timetable.md](sve-timetable.md) |\n| `SveDispatchesBox` | Dispatch box. ACL `SVE_BOX`. PUT `:id/assign-unassign`. No box or label math on this catalog. |\n| Printing request | Branch paper counts. [sve-printing.md](sve-printing.md) |\n\nLock that actually blocks assign and timetable edits is `SveDeadline.isLocked` plus an overdue deadline date. [sve-lock.md](sve-lock.md). Cambridge letter math is not here: [thresholds.md](thresholds.md), [cambridge.md](cambridge.md).\n\nModules `sve*`: sve, sve-cover-page, sve-cover-template, sve-deadline, sve-dispatches-box, sve-document, sve-errata-list, sve-exam-timetable-note, sve-exam-timetable-report, sve-exam-timetable-session, sve-exam-type, sve-exam-type-history, sve-item-analysis, sve-printing-request, sve-report, sve-student-grade. Also master-sve-component, master-sve-exam-type, master-sve-paper-envelope, master-sve-paper-type, bmt-week. A name with `*` is a prefix, not a complete inventory.\n\nTeacher list: HOD loads `GET /v1/sveExamTypes` filtered by HOD master subjects. Non-HOD loads `GET /v1/sveExamTypes/byUser`, which keeps rows where the caller is setter or vetter or expert unless `bySubjectTeacher` is set (then subject-year teacher). `SveExamTypeUserDto` sets `isSetter`, `isVetter`, `isExpert`.\n\nStudent does not configure SVE.\n\n## Admin\n\nFrom `bbs/client/src/routes.js`:\n\n| Route | Notes |\n| --- | --- |\n| /sve-list | List. Also /sve-list/add, /sve-list/:sveExamTypeId |\n| /sve-component | Components. Also /sve-component/add, /sve-component/:subjectId/:masterLevelId/:academicYearId/edit |\n| /sve-deadline | Deadlines. Lock toggle: [sve-lock.md](sve-lock.md) |\n| /sve-exam-timetable | Timetable. Also /sve-exam-timetable/:sveExamTimetableId/edit. [sve-timetable.md](sve-timetable.md) |\n| /sve-cover-template | Cover templates. Also /sve-cover-template/add, /sve-cover-template/:sveCoverTemplateId/edit |\n| /sve-cover-page | Cover pages. Also /sve-cover-page/:sveCoverPageId/edit |\n| /sve-report | Reports |\n| /sve-submission-summary | Submission summary |\n| /sve-label | Labels. No encoded label math found. |\n| /sve-errata-list | Errata |\n| /sve-bmt-week | BMT week |\n| /sve-box | Boxes. Also /sve-box/add, /sve-box/:sveBoxId/detail. ACL `SVE_BOX`. No encoded box math found. |\n| /sve-lock | Date UI for `lockAssignee` and `lockDocument`. Live nest path is missing. [sve-lock.md](sve-lock.md) |\n| /sve-item-analysis-analytics | Item analysis analytics. [sve-item-analysis.md](sve-item-analysis.md) |\n| /sve-printing-request | Printing. Formulas: [sve-printing.md](sve-printing.md) |\n\n`/sve-cover-*` in the nav is `/sve-cover-template` and `/sve-cover-page`.\n\n## Teacher\n\nFrom `bbs/client-teacher/src/routes.js`:\n\n| Route | Notes |\n| --- | --- |\n| /sves | List. Also /sves/:sveExamTypeId |\n| /grade-input | Grade input. Also /grade-input/:sveExamTypeId and /sves/:sveExamTypeId/grade-input. [sve-grade-input.md](sve-grade-input.md) |\n| /sves/:sveExamTypeId/item-analysis | Per-exam keys. [sve-item-analysis.md](sve-item-analysis.md) |\n| /item-analysis-analytics | Analytics. Also /item-analysis-analytics/:sveExamTypeId. Route meta `requirePrincipalOrHod: true` |\n| /bmt-files | BMT files. Also /bmt-files/:sveExamTypeId. [sve-files.md](sve-files.md) |\n| /exam-supporting-files | Supporting files. Also /exam-supporting-files/:sveExamTypeId |\n| /sves-past-paper | Past paper. Also /sves-past-paper/:sveExamTypeId |\n\nView `SveFiles.jsx` exists under teacher `views/sve/files` and links to `/sve-files/:id`. That path is not in `client-teacher/src/routes.js`. UNKNOWN whether it is mounted elsewhere.\n\n[Wiki home](README.md)',
+      userNote: 'SVE (School-based Vocational Examination atau sejenis ujian sekolah) adalah modul untuk mengelola seluruh proses ujian sekolah, mulai dari jenis ujian, jadwal, dokumen, hingga hasil. Guru dan admin mengatur pelaksanaan ujian dan berkas yang dibutuhkan. Fitur ini menjadi pusat pengelolaan administrasi ujian di sekolah.',
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/sves', note: 'SVE exam list + schedule' },
+          { portal: 'teacher', path: '/grade-input', note: 'Enter SVE scores' },
+          { portal: 'teacher', path: '/item-analysis-analytics', note: 'Per-question item analysis' },
+          { portal: 'admin', path: '/sve-report', note: 'Consolidated SVE reports' },
+        ],
+        requiredFields: [
+          { name: 'subjectYearId', type: 'relation → SubjectInYear' },
+          { name: 'examTypeId', type: 'relation → ExamTypes' },
+          { name: 'termId', type: 'relation → Term' },
+        ],
+        notes: [
+          'Cycle: create paper → input marks → lock → item analysis → print marksheets.',
+          'Question-level marks live in /v1/studentAnswers; locked papers are read-only.',
+        ],
+      },
     },
     {
       id: 'sve-timetable',
       title: 'SVE Timetable',
       category: 'assessment',
-      description: 'Exam scheduling.',
+      description:
+        'Jadwal ujian SVE: menetapkan tanggal, jam, dan durasi tiap jenis ujian SVE, plus catatan dan sesi waktunya.',
+      userNote:
+        'SVE Timetable dipakai admin sekolah untuk mengatur kapan setiap jenis ujian SVE dilaksanakan: tanggal, jam mulai, jam selesai, dan lama ujian dalam menit. Dari satu layar, admin bisa mengatur jadwal tiap jenis ujian sekaligus, mencetaknya ke PDF, dan mengekspornya ke CSV. Ada juga tenggat bertahap sebelum ujian (draft penyusun, draft pemeriksa, draft final, lalu kunci dokumen) sehingga guru tahu batas waktu penyiapan soal.',
       level: 2,
       parentId: 'sve',
-      crud: [],
-      relatesTo: ['sve'],
-      tags: [],
+      crud: [
+        { id: 'sve-timetable-read', label: 'Lihat daftar jadwal ujian tiap jenis SVE', type: 'read' },
+        { id: 'sve-timetable-update', label: 'Atur tanggal, jam, dan durasi ujian', type: 'update' },
+        { id: 'sve-timetable-action', label: 'Cetak jadwal (PDF) dan ekspor ke CSV', type: 'action' },
+        { id: 'sve-timetable-action2', label: 'Cek riwayat perubahan jadwal', type: 'action' },
+      ],
+      relatesTo: ['sve', 'sve-exam-timetable-session', 'sve-lock', 'sve-deadline'],
+      tags: ['jadwal ujian', 'sve'],
       wikiFile: 'sve-timetable.md',
+      wiki: '# SVE timetable\n\nExam-type date and time, session slots, cover pages, and the deadline that locks timetable edits.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-lock.md](sve-lock.md)\n- [sve-files.md](sve-files.md)\n- [sve-printing.md](sve-printing.md)\n\n## Exam type fields\n\nOn `SveExamType`: `examDate`, `examDateTo`, `examTimeFrom`, `examTimeTo` (`timetz`), `examDuration` (minutes), `week`. BMT uses `BmtWeek` and `AcademicYearWeek` instead of `examDate` on teacher detail.\n\nAdmin `/sve-exam-timetable`. Update: `PUT /v1/sveExamTypes/:id`. ACL `SVE_EXAM_TYPE` UPDATE or `SVE_EXAM_TIMETABLE` UPDATE. Times go through `convertedTimeTz`.\n\nClient lock: `isLocked && timetableDeadlineAt` is before now. Nest does not enforce it. [sve-lock.md](sve-lock.md).\n\nTeacher supporting-file cards format date and time in `examSupportingFileFormatters.js`: `examDate` as `LL`, times as `HH:mm` from `HH:mm:ssZ`.\n\n## Sessions\n\nEntity `SveExamTimetableSession`: `name`, `number` default 1, `group` default 1, `timeStart`, `timeEnd`, plus `masterSveExamTypeId`, `masterLevelId`, `academicYearId`, `masterProgrammeId`.\n\nAPI ` /v1/sveExamTimetableSession`. GET and POST ACL `SVE_SESSION_TIMETABLE` READ or CREATE. POST bulk: for one academic year, master exam type, and programme, insert rows without id, update rows with id, soft-delete existing ids missing from the payload.\n\n## Notes and schedule report\n\n`/v1/sveExamTimetableNotes`: GET, POST, POST bulk, DELETE. ACL `SVE_NOTE_TIMETABLE`.\n\n`GET /v1/sveExamTimetableReports/schedule`: no `@CheckPermissions` on the controller.\n\nAdmin list GET `/v1/sveExamTypes` also accepts READ on `SVE_EXAM_TIMETABLE` or `COMMENT_TIMETABLE`.\n\n## Cover\n\n`SveCoverPage`: academic year, programme, optional template, optional `sveExamTypeId`, `html`, `lexicalState`. `/v1/sveCoverPages`. ACL `SVE_COMPONENT` on create, bulk, GET, GET previous, GET one, DELETE, bulk remove. PUT `:id` has no `@CheckPermissions`.\n\nBulk create walks exam types for that year and programme. Template match: `MasterDocumentTemplate.subject` in the set of `masterSveExamType.name`, same `masterProgrammeId`. `totalPages` is the sum of `sveDocument.filePage` on that exam type. Do not treat that sum as printing-request math. Printing: [sve-printing.md](sve-printing.md).\n\n`SveCoverTemplate` `/v1/sveCoverTemplates`: create, update, list, sync, `addCoverTemplate`, `getCountSyncCoverTemplate`, `GET generateCoverPage`. ACL `SVE_COMPONENT`.\n\nAdmin routes: `/sve-cover-template`, `/sve-cover-page`. Teacher `SveDetail.jsx` can open a cover-page editor.\n\n[Wiki home](README.md)',
+      spec: {
+        screens: [
+          {
+            portal: 'admin',
+            path: '/sve-exam-timetable',
+            note: 'Daftar jadwal ujian semua jenis SVE, bisa dicetak dan diekspor',
+          },
+          {
+            portal: 'admin',
+            path: '/sve-exam-timetable/:sveExamTimetableId/edit',
+            note: 'Form ubah tanggal, jam, dan durasi satu jadwal ujian',
+          },
+        ],
+        api: {
+          basePath: '/api/v1/sveExamTypes',
+          module: 'sve-exam-type',
+          endpoints: [
+            {
+              method: 'GET',
+              path: '/ + /:id',
+              summary: 'Daftar semua jadwal ujian + detail satu jadwal',
+              auth: 'SVE_EXAM_TYPE / SVE_EXAM_TIMETABLE / COMMENT_TIMETABLE — READ',
+            },
+            {
+              method: 'PUT',
+              path: '/:id',
+              summary: 'Ubah tanggal, jam, durasi, dan tenggat ujian',
+              fields: [
+                'examDate',
+                'examDateTo',
+                'examTimeFrom',
+                'examTimeTo',
+                'examDuration',
+                'week',
+                'examDay',
+                'setterDraftDeadline',
+                'vetterDraftDeadline',
+                'finalDraftDeadline',
+                'lockDocument',
+                'lockAssignee',
+              ],
+              auth: 'SVE_EXAM_TYPE atau SVE_EXAM_TIMETABLE — UPDATE',
+            },
+            {
+              method: 'POST',
+              path: '/bulk',
+              summary: 'Buat beberapa jadwal ujian sekaligus',
+              auth: 'SVE_EXAM_TYPE — CREATE',
+            },
+            {
+              method: 'POST',
+              path: '/duplicate',
+              summary: 'Duplikat satu jadwal ujian ke tahun ajaran lain',
+              auth: 'SVE_EXAM_TYPE — CREATE',
+            },
+            {
+              method: 'POST',
+              path: '/bulk/remove',
+              summary: 'Hapus beberapa jadwal ujian sekaligus',
+              auth: 'SVE_EXAM_TYPE — DELETE',
+            },
+          ],
+        },
+        requiredFields: [
+          { name: 'examDate', type: 'tanggal', note: 'Tanggal mulai ujian' },
+          { name: 'examTimeFrom', type: 'jam', note: 'Jam mulai ujian' },
+          { name: 'examDuration', type: 'menit', note: 'Lama ujian dalam menit' },
+          { name: 'examDateTo', type: 'tanggal', note: 'Tanggal selesai (opsional)' },
+          { name: 'examTimeTo', type: 'jam', note: 'Jam selesai (opsional)' },
+        ],
+        notes: [
+          'Jadwal ini disimpan pada data "jenis ujian SVE" — satu baris mewakili satu jenis ujian.',
+          'Ada tenggat bertahap: draft penyusun, draft pemeriksa, draft final, lalu kunci dokumen.',
+          'Penguncian (lock) dicek di sisi aplikasi saja; server tidak menolak perubahan yang sudah lewat tenggat.',
+          'Untuk jam, sistem menyimpan waktu berzona (jam:menit:detik + zona waktu).',
+        ],
+      },
     },
     {
       id: 'sve-grade-input',
@@ -747,6 +1308,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve'],
       tags: [],
       wikiFile: 'sve-grade-input.md',
+      wiki: '# SVE grade input\n\nTeacher records per-question answers against item-analysis keys. Totals are computed in the SPA. The nest create and update paths store the payload as sent.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-item-analysis.md](sve-item-analysis.md)\n- [sve-files.md](sve-files.md)\n\n## Store\n\nEntity `SveStudentGrade`. Unique lookup on bulk: `(studentId, sveExamTypeId, classroomId)`. No `Unique()` decorator. No status column. No submit versus draft. Fields include `answers` jsonb, `totalScore`, `totalWeight`, `percentage`, plus optional programme, academic year, master level, subject, master exam type, class year.\n\n`answers[]`: `questionNumber`, `answer`, `score`, `mark`.\n\nAPI `/v1/sveStudentGrades`: GET, GET `:id`, POST, PUT `:id`, DELETE `:id`, POST `bulk`. No `@CheckPermissions` on the controller.\n\n`bulkUpdate` upserts by that triple. `create` and `update` persist DTO fields. Service method `calculateScore()` exists and is not called from those paths.\n\n## Teacher scoring (SPA)\n\n`bbs/client-teacher/src/views/sve/SveGradeInput.jsx`. Routes: `/grade-input`, `/grade-input/:sveExamTypeId`, `/sves/:sveExamTypeId/grade-input`. No `requirePrincipalOrHod` meta.\n\nFor each key row:\n\n- `MCQ_ABCD`: score is `keyAnswer.mark` if the cell equals `keyAnswer`, else 0. Cell is normalised to one of `A`..`E`.\n- else (open-ended): score is `parseFloat(answer) || 0`. Empty cell is skipped for the running total.\n\n`totalWeight` is the sum of key `mark` values. `percentage` is `(totalScore / totalWeight) * 100` when weight is greater than 0, else 0. Payload is POST create or PUT update per student. Autosave on blur when the student row is dirty and has any answer. No lock check.\n\n## Who appears\n\nStudents come from `GET studentsV2` with `bandingsIds` taken from the class-year `SubjectYear` for the selected subject. Deduped by student id, sorted by `fullName`. Empty banding list yields no rows.\n\nClassroom id on the grade row is `classYear.classroomId`. Filters cascade: programme, academic year, master level, subject, master exam type, exam paper (`sveExamTypeId`), class year.\n\n## Who can submit\n\nAPI: any authenticated caller that can hit `/v1/sveStudentGrades`. No role guard on that controller. Teacher portal exposes the routes with no principal or HOD meta. Admin has no grade-input route. Student has none. Nest does not check `SveDeadline.isLocked` or `SveExamType.lockDocument`.\n\n[Wiki home](README.md)',
+      userNote: 'SVE Grade Input adalah fitur untuk memasukkan dan mengelola nilai hasil ujian SVE siswa. Guru mengisi nilai tiap siswa pada komponen ujian yang relevan, lalu sistem menyimpannya untuk pengolahan dan pelaporan. Fitur ini memastikan nilai ujian tercatat rapi dan siap digunakan di tahap berikutnya.',
     },
     {
       id: 'sve-lock',
@@ -759,6 +1322,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve'],
       tags: [],
       wikiFile: 'sve-lock.md',
+      wiki: '# SVE lock\n\nTwo lock stores. The one that blocks assign and timetable edits is `SveDeadline.isLocked` plus an overdue date. The admin `/sve-lock` screen writes a different path that live nest does not expose.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-timetable.md](sve-timetable.md)\n- [sve-files.md](sve-files.md)\n- [sve-printing.md](sve-printing.md)\n- [open-questions.md](open-questions.md)\n\n## Deadline lock (live)\n\nEntity `SveDeadline`. Columns: `isLocked` boolean default true, `lockedAt` timestamptz nullable. Also `assignDeadlineAt`, `uploadingDeadlineAt`, `printRequestDeadlineAt`, `timetableDeadlineAt`. Unique create key: academic year, master programme, master SVE exam type, overlapping `masterLevelsIds` (`ArrayOverlap`). Programme initial `S` also includes JC when listing.\n\nToggle: `PUT /v1/sveDeadlines/:id/lockUnlock`. ACL `SVE_DEADLINE` UPDATE. `lockUnlockDeadline()` flips `isLocked`. When turning lock on, sets `lockedAt = new Date()`. Unlock does not clear `lockedAt`.\n\nAdmin `/sve-deadline` button is `BBSCan I={UPDATE} a={SVE_DEADLINE}`. Confirm copy: lock or unlock this deadline.\n\nNest services do not read `isLocked` to reject writes. Blocking is client-only:\n\n| Screen | Condition | What it disables |\n| --- | --- | --- |\n| `SveAssignTeacherModal.jsx` | `isLocked && moment(assignDeadlineAt).isBefore(moment())` | Setter, vetter, expert fields and save |\n| `SveExamTimetableModal.jsx` | `isLocked && moment(timetableDeadlineAt).isBefore(moment())` | Exam date and time fields and save |\n| `SvePrintingRequest.jsx` | `moment().isAfter(printRequestDeadlineAt)` when there are zero printing rows | Create. Sync stays allowed. `isLocked` is fetched and unused on this gate |\n\nUnlocked or not-yet-due: the forms stay editable. Backend `PUT /v1/sveExamTypes/:id` still accepts setter and timetable fields with no `isLocked` check.\n\n## Exam-type timestamps (live store, no live block)\n\n`SveExamType.lockDocument` and `SveExamType.lockAssignee` are `timestamptz` nullable. `PUT /v1/sveExamTypes/:id` writes them when the incoming value is truthy and different. ACL on that PUT: `SVE_EXAM_TYPE` UPDATE or `SVE_EXAM_TIMETABLE` UPDATE.\n\nNo nest service compares those dates to now to block assign, upload, or grade input. Teacher `SveDetail.jsx` does not read them.\n\n## Admin `/sve-lock` screen\n\n`bbs/client/src/views/sves/lock/SveLock.jsx`. Filter: `academicYearId`, `campusType` default `PRIMARY` (Primary or Secondary). Set button: `BBSCan I={UPDATE} a={SVE_LOCK}`. Save sends unix seconds at 23:59:59 for `lockAssignee` and `lockDocument`, keyed by `academicYearId`, `examType`, `campusType`.\n\nClient actions: `GET /sves/component/lock`, `PUT /sves/component/lock` (`bbs/client/src/actions/api/sve.js`).\n\nThose paths exist on retired `bbs/api/src/routers/sveRouter.ts` (ACL `SVE_LOCK` READ and UPDATE). They do not exist on `api_nest` `sve.controller.ts` (`path: \'sves\'`). Live API is api_nest. See [open-questions.md](open-questions.md). Retired Express wrote the timestamps onto `sve_component` rows for the academic year, exam type, and campus type (Primary School vs Secondary School plus Junior College).\n\n## Who can lock\n\nDeadline toggle: admin with `SVE_DEADLINE` UPDATE. Exam-type timestamps: admin with `SVE_EXAM_TYPE` UPDATE (or `SVE_EXAM_TIMETABLE` UPDATE on the same PUT). `/sve-lock` UI: `SVE_LOCK` UPDATE, against a nest path that is missing.\n\nTeacher cannot toggle `isLocked`. Student cannot.\n\n[Wiki home](README.md)',
+      userNote: 'SVE Lock adalah fitur untuk mengunci data SVE sehingga tidak bisa diubah lagi setelah batas waktu tertentu. Admin dapat mengaktifkan kunci agar nilai dan dokumen ujian tidak dimodifikasi setelah proses selesai. Fitur ini menjaga integritas dan keabsahan data ujian.',
     },
     {
       id: 'sve-item-analysis',
@@ -771,6 +1336,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve'],
       tags: [],
       wikiFile: 'sve-item-analysis.md',
+      wiki: '# SVE item analysis\n\nKey answers per question, import guards, and analytics views that grade items with FI and DI.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-grade-input.md](sve-grade-input.md)\n- [analytics.md](analytics.md)\n- [open-questions.md](open-questions.md)\n\n## Keys\n\nEntity `SveItemAnalysisAnswer`: `questionNumber`, `questionType` (`MCQ_ABCD` or `OPEN_ENDED`), `keyAnswer`, `mark`, `sveExamTypeId`, `masterSvePaperTypeId`. Unique live check: one question number per exam type and paper type (`assertQuestionNumberIsUnique`). Soft-delete on remove.\n\nAPI `/v1/sveItemAnalysisAnswers`. Create, import, find, update, delete: no `@CheckPermissions`. `GET reports` uses `ItemAnalysisAnalyticsAccessGuard`.\n\nTeacher keys UI: `/sves/:sveExamTypeId/item-analysis`. Tabs by paper-type code: FQP or QP (Question Paper), MS (Marking Scheme), AS or ANS (Answer Sheet), TOS. Create form: `MAX_MARK = 9`. MCQ options `A`..`E`.\n\n## Import\n\n`POST /v1/sveItemAnalysisAnswers/import`. Row numbers in errors start at 2.\n\nMUST fail a row when:\n\n- `questionNumber` is not an integer `>= 1`\n- `keyAnswer` is blank after trim\n- `mark` is missing, NaN, `< 0`, or `> 9`\n- type is `MCQ_ABCD` and trimmed upper key is not in `A`, `B`, `C`, `D`, `E`\n- the same question number appears twice in the file\n\nIf any live row already exists for that exam type and paper type and `replaceExisting` is false: `SveItemAnalysisAnswersAlreadyExistError`. When replace is true, existing rows are soft-removed then inserted. MCQ keys are stored uppercased.\n\n## Analytics access\n\n`GET /v1/sveItemAnalysisAnswers/reports`. Guard allows the caller if CASL can READ `SVE_ITEM_ANALYSIS_ANALYTICS`, or `checkIfPrincipal`, or `checkIfHoD` with `headDepartments.length > 0`. Else false.\n\nTeacher routes `/item-analysis-analytics` and `/item-analysis-analytics/:sveExamTypeId`: meta `requirePrincipalOrHod: true`. Admin `/sve-item-analysis-analytics`: SPA subject `SVE_ITEM_ANALYSIS_ANALYTICS`. [analytics.md](analytics.md).\n\n`reportScope`: `all` (default), `campus`, `classroom`. Views: `view_sve_item_analysis`, `view_sve_item_analysis_campus`, `view_sve_item_analysis_classroom`. `rowGroup` filter: `ALL`, `UPPER`, `LOWER`. Classroom scope also filters `classroomId` and `classYearId`.\n\n## Encoded FI, DI, grade\n\nFrom `VIEW_SVE_ITEM_ANALYSIS_EXPRESSION`. Live grades only (`deleted_at IS NULL`). Group size: `round(count(*) over exam type * 0.27)`. UPPER: `rank_high <= group_size` (score desc, then `student_id`). LOWER: `rank_low <= group_size` (score asc, then `student_id`). Else MIDDLE. Empty answers are dropped.\n\nMCQ FI (ALL): `total_correct / total_student_answer`. Open-ended ALL FI: `all_total_correct / all_total_incorrect`, where incorrect on ALL is `max(item_mark)`.\n\nMCQ DI: upper FI minus lower FI. Open-ended DI: `(upper_total_correct - lower_total_correct) / coalesce(all_total_incorrect, total_item_mark)`.\n\nGrade is set on `row_group = ALL` only:\n\n| When | Grade |\n| --- | --- |\n| `di < 0` | F |\n| `di = 0` | E |\n| `all_fi > 0.8` | A |\n| `all_fi > 0.3` | B |\n| `all_fi > 0.2` | C |\n| else | D |\n\nSPA labels: A Easy, B Average, C Difficult, D Very Difficult, E Poor Item, F Invalid Item (`itemAnalysisGradeMeta.js`).\n\nThe view counts MCQ options A to D only. Import and grade input allow E. Flag: [open-questions.md](open-questions.md).\n\n[Wiki home](README.md)',
+      userNote: 'SVE Item Analysis menganalisis kualitas butir soal ujian SVE, seperti tingkat kesulitan dan daya beda tiap soal. Guru dan admin dapat melihat analisis ini untuk mengevaluasi dan memperbaiki soal di masa depan. Fitur ini membantu meningkatkan mutu penyusunan soal ujian.',
     },
     {
       id: 'sve-printing',
@@ -783,6 +1350,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve'],
       tags: [],
       wikiFile: 'sve-printing.md',
+      wiki: '# SVE printing\n\nPrinting-request quantities. Branch requests plus exam-type documents become paper counts. Do not treat this table as a billing formula.\n\nSee also:\n\n- [sve.md](sve.md)\n- [cambridge.md](cambridge.md)\n\nFrom [PRINTING_DETAIL_LOGIC.md](../PRINTING_DETAIL_LOGIC.md). Admin route: `/sve-printing-request`. Module: sve-printing-request. These tables lived on [cambridge.md](cambridge.md) and moved here without changing the numbers.\n\n## Core counts\n\n| Item | Formula in that note |\n| --- | --- |\n| Expert | 1 if sveExamType.expertId exists, else 0 |\n| HOD | count of branches with paperCount > 0 (`totalBranches - branchesWithZeroPaperCount`) |\n| LIB | same as HOD |\n| Exam paper total | HOD + LIB + Expert + sum of (paperCount + extraPaperCount) |\n| Exam paper master | question-paper pages (masterSvePaperTypeId === 5) + cover pages (masterSvePaperTypeId === 14) |\n| Marking scheme total | HOD + LIB + Expert |\n| Marking scheme master | MS pages (code MS, isBMT === false) + TOS pages (code TOS) |\n| Teacher paper total | 8 * HOD |\n| Answer sheet total | same as exam paper total |\n| Insert total | same as exam paper total; INS and ICP combined in display |\n| MCQ total | sum of branch MCQ counts; master 1; HOD, LIB, Expert 0 |\n\n## Additional types in that note\n\n| Item | Formula in that note |\n| --- | --- |\n| Answer sheet master | pages from document with code AS |\n| Teacher paper master | pages from document with code TP |\n| Insert master | pages from document with code INS or ICP |\n| MCQ / MF19 master | always 1 |\n| Other additional total | HOD + LIB + Expert + sum of branch counts |\n| Other additional master | always 1 |\n\n`buildBranchPaperTypes` per branch and exam type: paperCount, extraPaperCount, additionalPaperTypeCount (AS, TP, INS, ICP, MCQ, MF19, etc.).\n\n[Wiki home](README.md)',
+      userNote: 'SVE Printing mengelola pencetakan berkas ujian SVE, termasuk permintaan cetak, jumlah lembar, dan pengiriman dokumen. Admin mengatur proses cetak dan memantau status berkas yang diproduksi. Fitur ini memastikan berkas ujian tercetak dan terdistribusi dengan benar.',
     },
     {
       id: 'sve-files',
@@ -795,6 +1364,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['sve', 'media-storage'],
       tags: [],
       wikiFile: 'sve-files.md',
+      wiki: '# SVE files\n\nExam documents, statuses, auto-send, and teacher download lists for BMT, supporting files, and past paper.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-lock.md](sve-lock.md)\n- [sve-timetable.md](sve-timetable.md)\n- [sve-printing.md](sve-printing.md)\n\nPrinting paper counts are not this page: [sve-printing.md](sve-printing.md).\n\n## Document\n\nEntity `SveDocument`. Status `SveDocumentStatusEnum`: `CREATED = 1`, `UPDATED`, `COMMENTED`, `REVISION_UPLOAD`, `APPROVED_DRAFT`, `APPROVED_FBP`. Default `CREATED`. Also `filePage` default 1, `uploadedBy` jsonb, `autoSendAt`, `isSent` default false.\n\nAPI `/v1/sveDocuments`: POST, GET, PUT `:id`. No `@CheckPermissions`. `remove()` returns the string `This action removes a #${id} sveDocument` and does not delete.\n\nCreate requires a live `File` and `MasterSvePaperType`. Status is `SveDocumentStatusEnum[options.status]`. Each create or update writes `SveDocumentHistory`.\n\nWhen status becomes `APPROVED_FBP`, the file `originFileName` is rewritten to `name_FBP.ext`.\n\n## Auto-send\n\nIf `shouldSendEmail` and an exam reference date exists: send date is that date minus 2 days. BMT: `AcademicYearWeek.startDate` from `bmtWeek.tempAcademicYearWeekId || bmtWeek.academicYearWeekId`. Else `sveExamType.examDate`. Today on or after send date: enqueue `SVE_DOCUMENT_PROCESS`. Else store `autoSendAt`.\n\nCron `0 0 * * *` (00:00 UTC, 07:00 WIB): find `autoSendAt <= today`, `isSent = false`, status `APPROVED_FBP`, enqueue the same process.\n\nBMT reminder cron `0 23 * * 4` (23:00 UTC Thursday, 06:00 WIB Friday): exam types on BMT weeks two weeks ahead whose paper type id 5 is missing or not `APPROVED_FBP`. Recipients: setter and vetter `emailBbs`.\n\n## Teacher editability\n\n`SveDetail.jsx` `isFileEditable()`. Role key is `isSetter` `isVetter` `isExpert` as three bits. Setter-only (`100`) is false. Any vetter or expert bit is true, then:\n\n- status `APPROVED_DRAFT` or `APPROVED_FBP` or `REVISION_UPLOAD`: non-BMT expert may edit; BMT vetter may edit\n- else only `CREATED`, `COMMENTED`, or `UPDATED` stay editable\n\nDeadline is loaded (`uploadingDeadlineAt`, `masterLevelsIds`) and passed as `sveDeadline`. File-edit map above does not test `isLocked`.\n\n## BMT download\n\nTeacher `/bmt-files`, `/bmt-files/:sveExamTypeId`. Default `masterSveExamTypeId` `"3"`. List: `GET /v1/sveExamTypes/bmtOnly` (`getBMTSveExamTypesByUser`). Query `substractBy: 7`: academic-year weeks where today is on or after `startDate - 7 days` and on or before `endDate`. HOD: `masterSubjectsIds` from HOD departments. Non-HOD: `bySubjectTeacher: true` (subject-year teacher).\n\n## Supporting files\n\nTeacher `/exam-supporting-files`, `/exam-supporting-files/:sveExamTypeId`. Default `masterSveExamTypeId` `"1"`. HOD: `GET /v1/sveExamTypes` with `masterSubjectsIds`. Non-HOD: `GET /v1/sveExamTypes/byUser` (setter or vetter or expert). Audio paper: code `AUD` or name contains `audio`.\n\n`findAllByUser` `substractBy`: `CURRENT_DATE >= (examDate - INTERVAL \'<n> days\')`. `excludeBMT`: `masterSveExamType.isBMT = false`.\n\n## Past paper\n\nTeacher `/sves-past-paper`, `/sves-past-paper/:sveExamTypeId`. On load, academic year is forced to `currentAcademicYear.id - 1`. Year picker keeps only `ay.id < currentAcademicYear.id`. List is `GET /v1/sveExamTypes` (not byUser). No extra status filter in the list component.\n\n[Wiki home](README.md)',
+      userNote: 'SVE Files adalah pengelolaan berkas atau dokumen digital terkait ujian SVE, seperti naskah soal dan lampirannya. Guru dan admin mengunggah, melihat, dan mengelola berkas ini dalam satu tempat. Fitur ini menjaga semua dokumen ujian tersimpan rapi dan mudah diakses.',
     },
     // ---- Finance ----
     {
@@ -813,6 +1384,19 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['products', 'discounts', 'invoices', 'wallets', 'student-billing'],
       tags: [],
       wikiFile: 'finance.md',
+      wiki: '# Finance\n\nCampus billing, invoices, payments, wallets, deposits, promo and product masters. No invented fee math.\n\nSee also:\n\n- [admissions.md](admissions.md)\n- [identity.md](identity.md)\n- [academic-structure.md](academic-structure.md)\n- [sources.md](sources.md)\n\n## Children\n\n- [products.md](products.md) — Product nav: category, template, type, list\n- [student-billing.md](student-billing.md) — Student billings and product billing report\n- [invoices.md](invoices.md) — Invoices, payments, installment and refund requests\n- [wallets.md](wallets.md) — Wallets, virtual accounts, security deposits, master accounts\n- [discounts.md](discounts.md) — Discounts, student discounts, promos, MDR, penalty\n- [document-templates.md](document-templates.md) — Finance nav document templates\n\n## Modules\n\nModules: billing, billing-report, student-billing, invoice, payment, wallet, wallet-transaction-history, security-deposit, installment-request, refund-request, promo, master-product, master-product-type, product-category, product-category-master-product-type, product-template, product-template-master-product-type, discounted-product, master-discount, master-discount-setting, master-penalty-setting, master-merchant-discount-rate, currency, family-bank-information, semestral-price, price-modification, one-time-product.\n\nPortal: admin. Teacher and student are not the owners of fee setup.\n\nAdmin nav splits this area: Product nav and Finance nav live in `bbs/client/src/containers/_nav.jsx` `finaMenu`. Billing is campus-scoped and academic-year scoped. The detailed fee math is not in the scattered notes. Do not invent fee formulas.\n\n[Wiki home](README.md)',
+      userNote: 'Finance adalah pusat pengelolaan keuangan sekolah yang mencakup penagihan (billing) kampus, invoice, pembayaran, dompet (wallet), deposit, produk, hingga promo. Fitur ini dipakai oleh admin keuangan dan staf sekolah untuk mengelola seluruh alur biaya siswa, mulai dari penyusunan harga sampai penerimaan uang. Pengelolaannya dibatasi per kampus dan per tahun ajaran.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/student-billings', note: 'Billing statements' },
+          { portal: 'admin', path: '/payments', note: 'Payment verification queue' },
+          { portal: 'admin', path: '/billing-report-product', note: 'Revenue by product' },
+        ],
+        notes: [
+          'Finance spans billing (what is owed), payments (what is paid) and products (what is sold).',
+          'Payments are approved per invoice; refunds and installment requests are separate sub-modules.',
+        ],
+      },
     },
     {
       id: 'products',
@@ -825,6 +1409,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['finance'],
       tags: [],
       wikiFile: 'products.md',
+      wiki: '# Products\n\nAdmin Product nav: category, template, type, and product list. Catalog setup for fees, not the billing run.\n\nSee also:\n\n- [student-billing.md](student-billing.md)\n- [discounts.md](discounts.md)\n- [finance.md](finance.md)\n- [academic-structure.md](academic-structure.md)\n\n## Admin routes\n\nProduct nav in `bbs/client/src/containers/_nav.jsx` `finaMenu`:\n\n| Nav | Path |\n| --- | --- |\n| Category | `/product-category`, `/add`, `/:productCategoryId`, `/:productCategoryId/edit` |\n| Template | `/product-template`, `/add`, `/:productTemplateId`, `/:productTemplateId/edit` |\n| Type | `/product-type`, `/add`, `/:productTypeId`, `/:productTypeId/edit` |\n| List | `/product-list`, `/product-list/add`, `/product-list/add-bulk`, `/product-list/add-catalog` |\n\nDetail and edit of a list row use `/product-List/:productListId` and `/product-List/:productListId/edit` (capital `L` in the path string in `routes.js`).\n\nPenalty (`/penalty-setting`) is also under Product nav. Documented on [discounts.md](discounts.md).\n\n## Modules\n\nModules: master-product*, product-category, product-category-master-product-type, product-template, product-template-master-product-type, product-*, discounted-product, one-time-product, semestral-price, currency.\n\nA name with `*` is a prefix, not a complete inventory.\n\nAPI: `/v1/masterProducts` with `POST /bulk` and `POST /catalog` matching add-bulk and add-catalog.\n\nMaster product rows carry `academicYearId` (required) and optional `academicYearInId`, plus a numeric `price` and optional `earlyPrice` window. How those numbers become a student fee is not in the scattered notes. Do not invent fee formulas. See [student-billing.md](student-billing.md).\n\nPortal: admin. Teacher and student do not own product setup.\n\n[Wiki home](README.md)',
+      userNote: 'Products adalah katalog produk biaya sekolah yang menjadi dasar penyusunan tagihan siswa, bukan proses penagihan itu sendiri. Admin keuangan menggunakan menu Product untuk mengatur kategori, template, tipe, dan daftar produk beserta harganya. Produk dapat dibuat satu per satu maupun secara massal, dan harga dapat dikaitkan dengan tahun ajaran tertentu.',
     },
     {
       id: 'discounts',
@@ -837,6 +1423,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['finance', 'awardees'],
       tags: [],
       wikiFile: 'discounts.md',
+      wiki: '# Discounts\n\nMaster discounts, per-student discounts, promos, merchant discount rate, and penalty setting.\n\nSee also:\n\n- [products.md](products.md)\n- [student-billing.md](student-billing.md)\n- [finance.md](finance.md)\n- [secondary-discipline.md](secondary-discipline.md)\n\n## Admin routes\n\n| Nav group | Nav | Path |\n| --- | --- | --- |\n| Finance | Discounts | `/discounts`, `/discounts/add`, `/discounts/:id`, `/discounts/:id/edit` |\n| Finance | Student Discounts | `/student-discounts`, `/student-discounts/:studentId`, `/student-discounts/:studentId/edit` |\n| Finance | Promo | `/promos`, `/promos/add`, `/promos/:promoId`, `/promos/:promoId/edit` |\n| Finance | Merchant Discount Rate | `/merchant-discount-rate`, `/add`, `/:merchantDiscountRateId`, `/:merchantDiscountRateId/edit` |\n| Product | Penalty | `/penalty-setting`, `/add`, `/:penaltySettingId`, `/:penaltySettingId/edit` |\n\nDiscount list meta additional subjects: `MASTER_DISCOUNT_SETTING`, `DISCOUNTED_PRODUCT`.\n\nSecondary discipline has its own discount-reduction screens. Those are not this page. See [secondary-discipline.md](secondary-discipline.md).\n\n## Modules\n\nModules: master-discount*, promo, master-penalty-setting, master-merchant-discount-rate.\n\nA name with `*` is a prefix. Related: master-discount, master-discount-setting, discounted-product.\n\nHow a discount or promo changes a billing amount is not in the scattered notes. Do not invent fee formulas. See [student-billing.md](student-billing.md).\n\nPortal: admin.\n\n[Wiki home](README.md)',
+      userNote: 'Discounts digunakan admin keuangan untuk mengelola potongan biaya sekolah, baik untuk siswa tertentu maupun berlaku umum. Di sini tersedia pengaturan potongan, potongan per siswa, promo, tarif diskon merchant, dan pengaturan denda keterlambatan. Fitur ini membantu sekolah memberikan keringanan biaya kepada siswa yang memenuhi syarat.',
     },
     {
       id: 'invoices',
@@ -853,6 +1441,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['finance', 'student-billing', 'parents'],
       tags: [],
       wikiFile: 'invoices.md',
+      wiki: '# Invoices\n\nInvoices, payment list, installment requests, and refund requests.\n\nSee also:\n\n- [student-billing.md](student-billing.md)\n- [wallets.md](wallets.md)\n- [finance.md](finance.md)\n- [discounts.md](discounts.md)\n\n## Admin routes\n\nFinance nav:\n\n| Nav | Path |\n| --- | --- |\n| Invoices | `/invoices`, `/invoices/add`, `/invoices/:invoiceId/create-payment` |\n| Payment List | `/payments`, `/payments/:invoiceId/approve-payment/:paymentId` |\n| Installment Requests | `/installment-requests`, `/installment-requests/:installmentRequestId` |\n| Refund Request | `/refund-requests` |\n\nPayment list meta: subject `PAYMENT`, additional `APPROVAL_PAYMENT`. Refund meta: `REFUND_REQUEST` plus `APPROVAL_REFUND_REQUEST_1`, `APPROVAL_REFUND_REQUEST_2`, `PROCESS_REFUND_REQUEST`.\n\n## Modules\n\nModules: invoice, payment, installment-request, refund-request.\n\nAPI: `/v1/invoices` (`POST`, `POST /bulk`, `POST :id/add`, `POST :id/remove`, `POST /resend/:id`, `GET checkOverdues`). `/v1/payments` and `/v2/payments` share the payment controller (`version: [\'1\', \'2\']`).\n\nAn invoice can attach billings. Create-payment is an invoice-scoped SPA route that writes through the payment module. Wallet pay/refund is a separate path; see [wallets.md](wallets.md).\n\nPortal: admin. Teacher and student are not the owners of invoice or payment approval.\n\n[Wiki home](README.md)',
+      userNote: 'Invoices adalah modul untuk membuat dan mengelola tagihan resmi yang harus dibayar orang tua atau siswa. Admin keuangan dapat membuat invoice, melampirkan rincian tagihan, dan membuat permintaan pembayaran dari dalam invoice. Dari sini juga diakses daftar pembayaran, permintaan cicilan, dan permintaan pengembalian dana.',
     },
     {
       id: 'wallets',
@@ -865,6 +1455,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['finance'],
       tags: [],
       wikiFile: 'wallets.md',
+      wiki: '# Wallets\n\nWallets, student virtual accounts, security deposits, and master accounts.\n\nSee also:\n\n- [invoices.md](invoices.md)\n- [students.md](students.md)\n- [finance.md](finance.md)\n- [student-billing.md](student-billing.md)\n\n## Admin routes\n\nFinance nav:\n\n| Nav | Path |\n| --- | --- |\n| Master Account | `/master-accounts`, `/add`, `/:masterAccountId`, `/:masterAccountId/edit` |\n| Student Virtual Account | `/virtual-accounts`, `/virtual-accounts/:studentId/edit` |\n| Wallets | `/wallets` |\n| Security Deposits | `/security-deposits`, `/security-deposits/:studentId` |\n\nSPA `/wallets` route meta uses subject `PAYMENT` (plus `APPROVAL_PAYMENT`). Nav and the API use `WALLET`. Flag; do not pick a winner from this page.\n\nThere is no `virtual-account` folder under `api_nest/src/modules`. Virtual-account UI is a student-scoped admin screen (`SUBJECT_MODULES.STUDENT_VA`).\n\n## Modules\n\nModules: wallet*, security-deposit, master-account.\n\nA name with `*` is a prefix, not a complete inventory. Related: wallet, wallet-transaction-history.\n\nAPI `/v1/wallets`: `POST deposit`, `POST pay`, `POST refund`, `GET`, `GET :id`. Permission subject `WALLET`.\n\nPortal: admin. Teacher and student are not the owners of wallet setup. Student identity: [students.md](students.md).\n\n[Wiki home](README.md)',
+      userNote: 'Wallets adalah fitur dompet digital dan rekening virtual yang dikelola admin keuangan untuk menampung dana siswa. Admin dapat melakukan pengisian saldo (deposit), pembayaran, dan pengembalian dana melalui wallet, serta mengelola akun master dan rekening virtual per siswa. Fitur ini memudahkan pembayaran tanpa harus selalu melalui transfer bank biasa.',
     },
     {
       id: 'student-billing',
@@ -877,6 +1469,39 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students', 'invoices'],
       tags: [],
       wikiFile: 'student-billing.md',
+      wiki: '# Student billing\n\nPer-student billings and the product billing report. Created from Finance nav or from an admission.\n\nSee also:\n\n- [invoices.md](invoices.md)\n- [products.md](products.md)\n- [discounts.md](discounts.md)\n- [student-admission.md](student-admission.md)\n\n## Admin routes\n\nFinance nav:\n\n| Nav | Path |\n| --- | --- |\n| Student Billings | `/student-billings`, `/student-billings/add`, `/student-billings/:studentId`, `/student-billings/:studentId/add` |\n| Billing Report | `/billing-report-product`, `/billing-report-product/:masterProductId` |\n\nAdmission also opens billing: `/admissions/:studentAdmissionId/addBilling` (`BillingForm`, subject `BILLING`). See [student-admission.md](student-admission.md).\n\n## Modules\n\nModules: billing, student-billing, billing-report.\n\nAPI: `/v1/billings` (`POST`, `POST /bulk`, `GET checkOverdues`, `GET checkPromos`, snapshots, student histories) and `/student-billing` (CRUD; controller path is unversioned in the decorator).\n\nA billing row points at a master product or a one-time product, optional discounted product and promo, a student, and optional `studentBillingId` / `invoiceId`. Encoded enums only (not fee math):\n\n| Enum | Values |\n| --- | --- |\n| `BillingStatusType` | OPEN 1, UNPAID, PAID, OVERDUE, REFUNDED, VOID |\n| `BillingPriceType` | ONE_TIME 1, SEMESTRAL, YEARLY, then backend-only ONE_YEAR_PRICE, ONE_SEMESTER_PRICE, ONE_TERM_PRICE, then TERM |\n\nThe entity stores many price columns (initial, early, discount, promo, final). `calculateFinalPrice` on the entity is commented out. Do not treat that comment, or any reconstructed combination of those columns, as current product math. The detailed fee math is not in the scattered notes. Do not invent fee formulas.\n\nPortal: admin. Teacher and student are not the owners of this write path.\n\n[Wiki home](README.md)',
+      userNote: 'Student Billing adalah fitur penagihan biaya per siswa yang dibuat dari menu Finance atau langsung dari proses admisi. Admin keuangan dapat membuat tagihan bagi seorang siswa, menambahkan beberapa tagihan sekaligus, dan melihat riwayat serta laporan penagihan berdasarkan produk. Status tagihan mencakup belum dibayar, sudah dibayar, jatuh tempo, dikembalikan, dan dibatalkan.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/student-billings', note: 'Billing statements, all students' },
+          { portal: 'admin', path: '/student-billings/:studentId', note: 'One student\u2019s statement' },
+          { portal: 'admin', path: '/student-billings/:studentId/add', note: 'Raise a bill for a student' },
+          { portal: 'admin', path: '/student-discounts/:studentId', note: 'Discounts applied to a student' },
+        ],
+        api: {
+          basePath: '/api/v1/billing',
+          module: 'billing',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List billing records' },
+            { method: 'GET', path: '/:id', summary: 'Billing record detail' },
+            { method: 'POST', path: '/', summary: 'Create a bill', fields: ['studentId', 'masterProductId', 'hasInstallments', 'dueDate', 'billingStatus', 'billingPriceType'] },
+            { method: 'PUT', path: '/:id', summary: 'Update a bill' },
+            { method: 'DELETE', path: '/:id', summary: 'Void a bill' },
+          ],
+        },
+        requiredFields: [
+          { name: 'studentId', type: 'relation → Students', note: 'Required unless installmentBillingId is set' },
+          { name: 'masterProductId', type: 'relation → MasterProducts', note: 'What is being billed; required unless installmentBillingId is set' },
+          { name: 'hasInstallments', type: 'boolean', note: 'Whether the bill is split into installments' },
+          { name: 'dueDate', type: 'date' },
+          { name: 'billingStatus', type: 'enum', note: 'BillingStatusType' },
+          { name: 'billingPriceType', type: 'enum', note: 'BillingPriceType — YEARLY / SEMESTRAL / TERM etc.' },
+        ],
+        notes: [
+          'Optional: price, finalPrice, promoId, quantity, semester (1-2), term (1-4), installmentBillingId, discountedProductId, isPenalty, notes.',
+          'Prices come from the product + any discount/promo, not a free "amount" field.',
+        ],
+      },
     },
     {
       id: 'awardees',
@@ -889,6 +1514,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['discounts'],
       tags: [],
       wikiFile: 'awardees.md',
+      wiki: '# Awardees\n\nAwardees view types, eligibility, INNER JOIN drop-through, LOWER/UPPER/SUBJECT/PQP rules, and NONE rows.\n\nSee also:\n\n- [primary-reports.md](primary-reports.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [open-questions.md](open-questions.md)\n- [certificates.md](certificates.md)\n\nFrom [view_student_awardees_rules.md](../view_student_awardees_rules.md) and [view_student_awardees.sql](../view_student_awardees.sql). Types: LOWER, UPPER, SUBJECT, PQP. One student can appear in more than one type.\n\n## Eligibility\n\nEligibility (all required): `full_name` does not match `%sample%` (case-insensitive); `deleted_at IS NULL`; `active_status = \'1\'`; `student_status = \'1\'`.\n\nINNER JOIN drop-through: student_report to student to class_year to programme to campus to master_level to classroom to academic_year to subject_year to subject to employee (homeroom) to banding_students_student to banding to employee (subject teacher). Missing banding or homeroom teacher drops the student from every award. Flag as a review item, not as invented policy. See [open-questions.md](open-questions.md).\n\nMark order: BEGINNING 1, DEVELOPING 2, COMPETENT 3, PROFICIENT 4. Other or NULL mark maps to NULL order. Terms <= 4. Latest term, then highest mark per indicator (`rank_lo_grade` then `ytd_lo_grade`). Soft-deleted `learning_indicator_grade` rows are out. Campus NULL on `learning_outcome_year` means all campuses.\n\nEMSCBI: `s_category = \'1\'` collapsed to virtual subject EMSCBI (`s_id = 0`, no subject teacher). Category `\'2\'` kept per subject. Exclude PAL - PLAY AND LEARN.\n\n## LOWER EMSCBI ML1\n\n`ml_id = 1`:\n\n| Award | Conditions |\n| --- | --- |\n| HIGH DISTINCTION | proficient >= 29 and competent 0-3 and beginning = 0 and developing = 0 |\n| DISTINCTION | proficient 26-28 and competent 4-6 and beginning = 0 and developing = 0 |\n\n## LOWER EMSCBI ML2\n\n`ml_id = 2`:\n\n| Award | Conditions |\n| --- | --- |\n| HIGH DISTINCTION | proficient >= 32 and competent 0-4 and beginning = 0 and developing = 0 |\n| DISTINCTION | proficient 29-31 and competent 5-7 and beginning = 0 and developing = 0 |\n\nFirst match wins. Other master levels yield NONE for these EMSCBI distinctions.\n\n## LOWER subject-name awards\n\nCategory 2 in practice, keyed on `s_name`, not on category in the CASE: YOUNG ARTIST (`Art & Crafts`), FAITH HEROES (`Faith Builder`), YOUNG ATHLETE (`Physical Education`), YOUNG MUSICIAN (`Music`), CHARACTER HEROES (`Character First`), PELAJAR PANCASILA (`Pendidikan Pancasila dan Kewarganegaraan`). PE and Music use extra `lo_count` thresholds that differ between ML1 and ML2. See the source note for the exact PE and Music predicates. Flag hardcoded subject names as a review item. See [open-questions.md](open-questions.md).\n\n## UPPER\n\n`gold` = count of student-grade `award = \'3\'` (GOLD). `a_mark` = count of `grade_mark = \'A\'`. Medal map: 1 BRONZE, 2 SILVER, 3 GOLD. Exact equality, not >=.\n\n| Award | Conditions |\n| --- | --- |\n| HIGH DISTINCTION | gold = 6 and a_mark = 6 |\n| DISTINCTION | (gold = 5 and a_mark = 6) or (gold = 6 and a_mark = 5) |\n| MERIT | (gold = 5 and a_mark = 5) or (gold = 4 and a_mark = 6) or (gold = 6 and a_mark = 4) |\n| NONE | otherwise |\n\n## SUBJECT medals\n\nBRONZE, SILVER, GOLD passthrough when `sg_award_name IS NOT NULL` and `s_category = \'1\'` and `s_name <> \'Project\'`.\n\n## PQP\n\nPOSITIVE ROLE MODEL when count of `evaluation_mark = \'EXCEEDING_EXPECTATIONS\'` on `student_ftp_conduct_evaluation` equals 4. Else NONE. Exact equality.\n\nNONE rows are returned. Consumer MUST filter `reward <> \'NONE\'` if only actual awardees are wanted.\n\nPortals: admin and report consumers of the view. Not a student write path.\n\n[Wiki home](README.md)',
+      userNote: 'Awardees adalah fitur yang menampilkan daftar siswa penerima penghargaan (award) berdasarkan hasil belajar dan indikator penilaian mereka. Sistem menentukan kelayakan siswa berdasarkan status aktif, kelas, program, dan guru, lalu mengelompokkan penghargaan ke dalam beberapa jenis seperti LOWER, UPPER, SUBJECT, dan PQP. Staf akademik dapat melihat siswa mana yang memenuhi syarat untuk tiap penghargaan.',
     },
     // ---- Operations ----
     {
@@ -902,6 +1529,28 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['class-in-year', 'students'],
       tags: [],
       wikiFile: 'attendance.md',
+      wiki: '# Attendance\n\nCanonical attendance rules, bulk create, daily sync, and teacher UI error handling.\n\nSee also:\n\n- [rules.md](rules.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n- [sources.md](sources.md)\n\nCanonical rules from [ATTENDANCE_REQUIREMENTS_COMPLIANCE.md](../ATTENDANCE_REQUIREMENTS_COMPLIANCE.md):\n\n1. Filter terms by `attendance.date`, not `created_at`.\n2. Inclusive boundaries (>= and <=, `isSameOrAfter` and `isSameOrBefore`).\n3. Exclude soft-deleted attendance (`deleted_at is null` or `deletedAt: IsNull()`).\n4. Do not count present in absent or late.\n5. CURRENT + ACTIVE students only.\n\n## Modules\n\nModules: attendance, daily-attendance, student-attendance-report, late-time-setting.\n\n`createBulk` and `syncDailyAttendance` live in `api_nest/src/modules/attendance/attendance.service.ts`. Daily attendance is complete when `totalAttendance === totalStudent` of CURRENT+ACTIVE students in that class year. Status codes in `syncDailyAttendance`: `\'1\'` present, `\'2\'` late.\n\n`create` returns empty attendance if `studentStatus !== CURRENT`. `daily-attendance.service.ts` `synchronizeDailyAttendanceStatus` uses the same CURRENT+ACTIVE filter.\n\nTeacher UI MUST NOT silently show 0 on load failure. File: `bbs/client-teacher/src/views/classrooms/ClassroomDetailsAttendances.jsx`. Same pattern: `ClassroomAttendanceSummary.jsx`. Error path shows a retry (`dailyAttendancesApi?.refresh?.()`). Defaulting `presentCount` to 0 is allowed only after the error state is ruled out.\n\nPortals: teacher records daily attendance. Admin reads reports. Student does not own this write path.\n\nThe compliance note records a 13 vs 12 student-count debug as in progress. Do not treat that count as a product number.\n\n[Wiki home](README.md)',
+      userNote: 'Pencatatan kehadiran siswa yang dilakukan guru setiap hari, mencakup status hadir, terlambat, dan tidak hadir. Admin membaca laporan kehadiran, sedangkan guru mencatat kehadiran harian per kelas. Sistem menyinkronkan rekap kehadiran harian dan hanya menghitung siswa berstatus aktif. Siswa tidak mengelola pencatatan ini.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/attendance-lateness', note: 'Lateness + attendance overview' },
+          { portal: 'teacher', path: '/classrooms/:classYearId', note: 'Mark attendance for a class' },
+        ],
+        api: {
+          basePath: '/api/v1/attendance',
+          module: 'attendance',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'Attendance records (by class / date range)' },
+            { method: 'POST', path: '/', summary: 'Mark attendance', fields: ['classYearId', 'date', 'records'] },
+            { method: 'PUT', path: '/:id', summary: 'Amend an attendance entry' },
+          ],
+        },
+        requiredFields: [
+          { name: 'classYearId', type: 'relation → ClassYear' },
+          { name: 'date', type: 'date' },
+          { name: 'records', type: 'StudentAttendance[]', note: 'Per-student present/absent/late' },
+        ],
+      },
     },
     {
       id: 'discipline',
@@ -914,6 +1563,32 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['secondary-discipline', 'medals', 'rules'],
       tags: [],
       wikiFile: 'discipline.md',
+      wiki: '# Discipline\n\nPrimary discipline overview, reports, tardiness, and statistics.\n\nSee also:\n\n- [secondary-discipline.md](secondary-discipline.md)\n- [attendance.md](attendance.md)\n- [certificates.md](certificates.md)\n- [identity.md](identity.md)\n\n## Admin routes\n\nDiscipline nav:\n\n| Nav | Path |\n| --- | --- |\n| Overview | `/discipline-overview` |\n| Report | `/discipline`, `/discipline/add-report` |\n| Tardiness | `/tardiness`, `/discipline/add-tardiness-report` |\n| Statistics | `/discipline-statistics` |\n\nSecondary items in the same nav (category, secondary report, verify conduct, reductions) are [secondary-discipline.md](secondary-discipline.md).\n\n## Teacher routes\n\nAttendance Monitoring (principal or VP): `/attendance-monitoring/discipline`. Daily attendance sibling: `/attendance-monitoring`. See [attendance.md](attendance.md).\n\n## Modules\n\nModules: discipline, master-discipline.\n\nAPI: `/v1/disciplines` including `GET /disciplineFormStatistics`. Create permissions named: `DISCIPLINE`, `DISCIPLINE_REPORT`, `DISCIPLINE_TARDINESS_REPORT`.\n\nPortal: admin owns setup and reports. Teacher principal/VP reads the monitoring discipline view. Student does not own this write path.\n\n[Wiki home](README.md)',
+      userNote: 'Modul disiplin utama untuk mencatat dan memantau pelanggaran siswa serta keterlambatan. Admin mengelola konfigurasi disiplin, laporan pelanggaran, laporan keterlambatan, dan statistik disiplin. Kepala sekolah atau wakil kepala dapat melihat tampilan pemantauan disiplin. Laporan ini membantu sekolah memantau perilaku dan tindak lanjut siswa.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/discipline', note: 'Discipline case list' },
+          { portal: 'admin', path: '/discipline-overview', note: 'Aggregate view per student/class' },
+          { portal: 'admin', path: '/discipline/add-report', note: 'File an incident report' },
+          { portal: 'admin', path: '/discipline/add-tardiness-report', note: 'File a tardiness report' },
+          { portal: 'admin', path: '/discipline-statistics', note: 'Trends + statistics' },
+        ],
+        api: {
+          basePath: '/api/v1/discipline',
+          module: 'discipline',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List incidents' },
+            { method: 'POST', path: '/', summary: 'Create incident report', fields: ['studentId', 'type', 'description', 'date'] },
+            { method: 'PUT', path: '/:id', summary: 'Update incident' },
+            { method: 'DELETE', path: '/:id', summary: 'Delete incident' },
+          ],
+        },
+        requiredFields: [
+          { name: 'studentId', type: 'relation → Students' },
+          { name: 'type', type: 'enum', note: 'merit / demerit / incident / tardiness' },
+          { name: 'date', type: 'date' },
+        ],
+      },
     },
     {
       id: 'secondary-discipline',
@@ -926,6 +1601,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['discipline'],
       tags: [],
       wikiFile: 'secondary-discipline.md',
+      wiki: '# Secondary discipline\n\nSecondary category, yellow and merit forms, reports, verify-conduct, and reductions.\n\nSee also:\n\n- [discipline.md](discipline.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [certificates.md](certificates.md)\n- [discounts.md](discounts.md)\n- [yellow-reports.md](yellow-reports.md)\n\n## Admin routes\n\nSame Discipline nav as [discipline.md](discipline.md), lower items:\n\n| Nav | Path |\n| --- | --- |\n| Secondary Discipline Category | `/secondary-discipline-category`, `/add`, `/:secondaryDisciplineCategoryId/edit` |\n| Secondary Discipline | `/secondary-discipline` |\n| Yellow form | `/secondary-discipline/yellow/add` |\n| Merit form | `/secondary-discipline/merit/add` |\n| Secondary Discipline Report | `/secondary-discipline-report` |\n| Secondary Verify Conduct | `/secondary-verify-conduct` |\n| Discount Reduction | `/secondary-discipline-discount-reduction`, `/add` |\n| Reduction | `/secondary-discipline-reduction` |\n\nDiscount reduction here is a secondary-discipline screen. Master fee discounts: [discounts.md](discounts.md).\n\nTeacher form-class Conduct (`/conduct`) is the primary/secondary conduct remark path, not this module. See [primary-reports.md](primary-reports.md).\n\n## Modules\n\nModules: secondary-discipline-*.\n\nA name with `*` is a prefix. Related: secondary-discipline-category, secondary-discipline-discount-reduction, secondary-discipline-form, secondary-discipline-reduction, master-secondary-discipline-merit, merit-report, secondary-verify-conduct.\n\nPortal: admin. Teacher does not have these secondary-discipline SPA routes.\n\nYellow report read API (`GET /v1/yellowReports/students/:studentId`): [yellow-reports.md](yellow-reports.md). Form CRUD stays on this page.\n\n[Wiki home](README.md)',
+      userNote: 'Bagian disiplin tingkat lanjutan (sekolah menengah) yang mencakup kategori disiplin, formulir kuning (yellow form) dan formulir merit, laporan, verifikasi perilaku, serta pengurangan (reduction). Admin mengelola seluruh pengaturan dan laporan di sini. Fitur ini melengkapi modul disiplin utama dengan alur khusus untuk tingkat sekunder.',
     },
     {
       id: 'medals',
@@ -938,6 +1615,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['discipline'],
       tags: [],
       wikiFile: 'medals.md',
+      wiki: '# Medals\n\nMedal types, medals, badge types, badges, and e-badges. Gradebook medal numbers are not this catalog.\n\nSee also:\n\n- [awardees.md](awardees.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [certificates.md](certificates.md)\n- [certificates-admin.md](certificates-admin.md)\n\n## Admin routes\n\n| Nav group | Nav | Path |\n| --- | --- | --- |\n| Education Master Data | Badge Type, Badges | `/badge-type`, `/badges` (add/detail/edit on type) |\n| Education Master Data | Medal Type, Medals | `/medal-type`, `/medals` (add/detail/edit on type) |\n| Non Education Master Data | E-Badges | `/ebadges` |\n| Academic Year Data → Grades | E-Badges Grade Setting | `/ebadges-grade-setting` |\n\nReport → Certificates → Subject Medals (`/certificates/subject-medal`) is the certificate issue screen. See [certificates-admin.md](certificates-admin.md).\n\n## Teacher routes\n\nGrade nav E-Badges: `/ebadges`, `/ebadges/:classYearId/:academicYearId`. Subject `FORM_TEACHER_PERIOD`.\n\n`/student-badges` is commented out in teacher `routes.js` and `_nav.jsx`. Not live.\n\n## Modules\n\nModules: medal*, badge*, student-medal, student-badge.\n\nA name with `*` is a prefix. Related: medal, medal-type, subject-medal, badge, badge-type.\n\nUPPER subject medals in the awardees view: [awardees.md](awardees.md). Secondary gold/silver/bronze thresholds live on secondary-grade-weight (`-1` disabled). See [secondary-gradebook.md](secondary-gradebook.md). Do not copy those numbers here as if this page owned them.\n\nPortal: admin configures types. Teacher form-class records e-badges.\n\n[Wiki home](README.md)',
+      userNote: 'Modul pengelolaan penghargaan berbentuk medal dan badge bagi siswa, termasuk jenis medal, jenis badge, dan E-Badges. Admin mengatur jenis medal dan badge, sedangkan guru wali kelas mencatat e-badge siswa. Fitur ini dipakai sekolah untuk memberikan apresiasi atas prestasi atau perilaku baik siswa.',
     },
     {
       id: 'rules',
@@ -950,6 +1629,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['discipline'],
       tags: [],
       wikiFile: 'rules.md',
+      wiki: '# Rules\n\nCross-cutting constraints that apply across modules: live rows, student status, API prefix, JSON:API, TypeORM, frontend stack.\n\nSee also:\n\n- [attendance.md](attendance.md)\n- [identity.md](identity.md)\n- [systems.md](systems.md)\n- [awardees.md](awardees.md)\n\n## Soft-delete\n\nTreat `deleted_at IS NULL` as live. TypeORM `deletedAt` and `IsNull()` on the same rule.\n\nMUST: filter live rows with `deleted_at IS NULL` unless a note names an audit or history query.\n\n## Student status\n\nStudent counts and attendance: `studentStatus` CURRENT and `activeStatus` ACTIVE only (`StudentStatusTypeEnum.CURRENT`, `StatusTypeEnum.ACTIVE`). SQL in the awardees view uses `student_status = \'1\'` and `active_status = \'1\'` for the same idea (SQL string \'1\'). Do not mix the enum names with the view literals without checking the column type.\n\nMUST NOT: count withdrawn or inactive students in attendance totals, daily-complete checks, or student headcount.\n\n## API prefix and JSON:API\n\nAPI prefix: `/api` with URI versioning. Paths below are written as `/v1/...`. Combined public path is `/api` plus `/v1` plus resource.\n\nJSON:API interceptor on `api_nest`. Request and response envelopes: [systems.md](systems.md).\n\n## TypeORM\n\nTypeORM, PostgreSQL, `migrationsRun: true`. Migrations live under `api_nest/src/database/migrations/` and run on boot.\n\n## Frontend stack\n\nFrontends: React 18, CoreUI Pro, Redux Toolkit, Router v5. Admin and teacher are Vite 5. Student is Create React App (`react-scripts` 5). Teacher and student depend on `file:../bbs-client-common/dist`.\n\n[Wiki home](README.md)',
+      userNote: 'Kumpulan aturan lintas modul yang berlaku menyeluruh, seperti hanya menghitung data yang masih aktif (tidak terhapus), serta hanya menghitung siswa berstatus CURRENT dan ACTIVE. Aturan ini memastikan laporan kehadiran, jumlah siswa, dan penghitungan lain konsisten. Ini bukan fitur untuk pengguna langsung, melainkan pedoman perilaku sistem yang menjamin akurasi data.',
     },
     {
       id: 'pickup',
@@ -962,6 +1643,21 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['parents', 'students'],
       tags: [],
       wikiFile: 'pickup.md',
+      wiki: '# Student pick-up\n\nPick-up persons, settings, check-in/out, and release. Admin owns setup. Teacher can release. There is no parent SPA, so parent pick-up UI is out of this repo.\n\nSee also:\n\n- [attendance.md](attendance.md)\n- [students.md](students.md)\n- [identity.md](identity.md)\n- [access.md](access.md)\n- [class-in-year.md](class-in-year.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/student-pick-up` | Nav: Attendance. `SUBJECT_MODULES.STUDENT_PICK_UP`. Also `:studentId`, edit. |\n| Admin | `/student-pick-up-setting` | `SUBJECT_MODULES.STUDENT_PICK_UP_SETTING`. Also add and edit. |\n| Admin | `/checking` | Nav: Check in & Check Out. `SUBJECT_MODULES.ATTENDANCE`. |\n| Admin | `/release-student` | `SUBJECT_MODULES.STUDENT_PICK_UP_REQUEST`. |\n| Teacher | `/release-student` | Same subject. |\n| Student | none | |\n\n## Modules\n\nModules: student-pick-up, student-pick-up-person, student-pick-up-request, student-pick-up-setting. Prefix `student-pick-up*` in the catalog brief is not a closed inventory beyond these four folders.\n\nMUST NOT: start `bbs/api` for auth. Encoded on [identity.md](identity.md).\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Modul penjemputan siswa yang mengelola daftar penjemput, pengaturan penjemputan, proses check-in dan check-out, serta pelepasan siswa. Admin mengatur data dan pengaturan penjemputan serta memproses pelepasan siswa, dan guru juga dapat melepaskan siswa. Fitur ini membantu sekolah memastikan siswa diserahkan hanya kepada pihak yang berwenang menjemput.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/student-pick-up', note: 'Pickup log / active pickups' },
+          { portal: 'admin', path: '/student-pick-up/:studentId', note: 'One student\u2019s pickup history' },
+          { portal: 'admin', path: '/student-pick-up-setting', note: 'Authorised pickers + rules' },
+          { portal: 'student', path: '/pickup', note: 'Student view of pickup status' },
+        ],
+        requiredFields: [
+          { name: 'studentId', type: 'relation → Students' },
+          { name: 'authorisedPersonId', type: 'relation → Parents / Guardians' },
+          { name: 'relationship', type: 'string', note: 'e.g. mother, father, driver' },
+        ],
+      },
     },
     {
       id: 'certificates',
@@ -974,6 +1670,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['certificates-admin', 'document-templates'],
       tags: [],
       wikiFile: 'certificates.md',
+      wiki: '# Certificates\n\nCertificates, medals, badges, discipline, LEAPS, health, promotion, transcripts.\n\nSee also:\n\n- [awardees.md](awardees.md)\n- [primary-reports.md](primary-reports.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [identity.md](identity.md)\n\n## Children\n\n- [certificates-admin.md](certificates-admin.md) — Templates, assign, student list, `/my-certificate`\n- [medals.md](medals.md) — Medals, badges, e-badges\n- [leaps.md](leaps.md) — LEAPS type and events. No invented scores\n- [discipline.md](discipline.md) — Primary discipline, tardiness, statistics\n- [secondary-discipline.md](secondary-discipline.md) — Secondary category, yellow/merit, reductions\n\n## Modules\n\nModules: student-certificates, master-certificate-template, completion-certificate, learning-outcome-certificate, medal, medal-type, subject-medal, badge, badge-type, student-badge, student-medal, discipline, master-discipline, secondary-discipline-category, secondary-discipline-discount-reduction, secondary-discipline-form, secondary-discipline-reduction, master-secondary-discipline-merit, merit-report, leaps-event, leaps-type, student-leaps-remark, height-weight, health, graduation-schedule, student-promotion, student-transcript.\n\nPortals: admin configures. Teacher form-class: LEAPS, height and weight, streaming and promotion, conduct. Student: /my-certificate.\n\nSubject medals for awardees are computed in the awardees view (see [awardees.md](awardees.md)). Secondary medal thresholds for gradebook gold, silver, bronze live on secondary-grade-weight (-1 disabled). See [secondary-gradebook.md](secondary-gradebook.md).\n\nNo extra numeric formulas for LEAPS or health in the scattered notes. Do not invent them.\n\n[Wiki home](README.md)',
+      userNote: 'Fitur penerbitan sertifikat bagi siswa, mencakup sertifikat penyelesaian, medal mata pelajaran, dan sertifikat umum. Siswa dapat melihat sertifikat miliknya sendiri, sementara admin mengonfigurasi serta menerbitkannya. Fitur ini memberi siswa bukti resmi atas pencapaian akademik maupun non-akademik mereka.',
     },
     {
       id: 'certificates-admin',
@@ -986,6 +1684,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['certificates'],
       tags: [],
       wikiFile: 'certificates-admin.md',
+      wiki: '# Admin certificates\n\nCertificate templates and issue screens. Student reads `/my-certificate`.\n\nSee also:\n\n- [awardees.md](awardees.md)\n- [lo-settings.md](lo-settings.md)\n- [certificates.md](certificates.md)\n- [medals.md](medals.md)\n\n## Admin routes\n\nReport nav → Certificates. `/certificates` as a bare index route is commented out in `routes.js`.\n\n| Nav | Path |\n| --- | --- |\n| Certificate Template | `/certificate-templates`, `/add`, `/:masterCertificateTemplateId`, `/:masterCertificateTemplateId/edit` |\n| Completion Certificates | `/certificates/completion-certificate` |\n| Subject Medals | `/certificates/subject-medal` |\n| Learning Outcome Certificate | `/certificates/learning-outcome` |\n| General Purpose | `/certificates/general-purpose` |\n| Assign Certificate | `/certificates/assign` |\n| Custom Certificate | `/certificates/custom` |\n| Student List Certificate | `/certificates/student-list` |\n\nIssue screens use subject `CERTIFICATE`. Templates use `MASTER_CERTIFICATE_TEMPLATE`.\n\nFinance document templates (`/document-templates`) are a different module. See [document-templates.md](document-templates.md).\n\n## Student routes\n\n`/my-certificate`.\n\n## Modules\n\nModules: student-certificates, master-certificate-template, completion-certificate, learning-outcome-certificate.\n\nAPI: `/v1/studentCertificates` (`POST sync`, `POST custom`, `POST custom/bulk`, `GET`).\n\nSubject medals consumed by the awardees view: [awardees.md](awardees.md). Learning-outcome certificate settings sit with LO configuration: [lo-settings.md](lo-settings.md).\n\nPortal: admin configures and assigns. Student reads `/my-certificate`. Teacher does not own these SPA routes.\n\n[Wiki home](README.md)',
+      userNote: 'Sisi admin untuk mengelola template sertifikat dan layar penerbitan sertifikat. Admin dapat membuat template sertifikat serta menerbitkan berbagai jenis sertifikat seperti completion certificate, subject medal, learning outcome, general purpose, dan custom. Guru tidak memiliki akses ke halaman ini, sedangkan siswa membaca hasilnya di halaman sertifikat pribadi.',
     },
     {
       id: 'document-templates',
@@ -998,6 +1698,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['certificates', 'report-settings'],
       tags: [],
       wikiFile: 'document-templates.md',
+      wiki: '# Document templates\n\nFinance nav templates for generated documents (offer letters and similar). Not certificate templates.\n\nSee also:\n\n- [offer-admission.md](offer-admission.md)\n- [certificates.md](certificates.md)\n- [finance.md](finance.md)\n- [certificates-admin.md](certificates-admin.md)\n\n## Admin routes\n\nFinance nav item name Template: `/document-templates`, `/document-templates/add`, `/document-templates/:masterDocumentTemplateId`, `/document-templates/:masterDocumentTemplateId/edit`.\n\nCertificate templates are a different nav under Report → Certificates (`/certificate-templates`). See [certificates-admin.md](certificates-admin.md).\n\n## Modules\n\nModules: master-document-template.\n\nAPI: `/v1/masterDocumentTemplates`. Offer-admission preview uses `/v1/offerAdmissions/previewPdf`. See [offer-admission.md](offer-admission.md).\n\nPortal: admin.\n\n[Wiki home](README.md)',
+      userNote: 'Modul pengelolaan template dokumen keuangan, seperti surat penawaran dan dokumen sejenis yang dihasilkan sistem. Admin dapat menambah, menyunting, dan mengelola template beserta pratinjaunya. Modul ini berbeda dari template sertifikat dan khusus dipakai untuk kebutuhan dokumen bagian keuangan.',
     },
     {
       id: 'analytics',
@@ -1010,6 +1712,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['gradebooks', 'finance', 'attendance'],
       tags: [],
       wikiFile: 'analytics.md',
+      wiki: '# Analytics\n\nAdmin analytics screens and teacher SVE item-analysis.\n\nSee also:\n\n- [sve.md](sve.md)\n- [sve-item-analysis.md](sve-item-analysis.md)\n- [other-modules.md](other-modules.md)\n- [systems.md](systems.md)\n- [access.md](access.md)\n\n## Admin routes\n\nAnalytics nav:\n\n| Nav | Path | SPA subject |\n| --- | --- | --- |\n| Analytic Setting | `/analytic-setting` | `ANALYTIC_SETTING` |\n| AB Analytic | `/analytic-ab` | `AB_ANALYTIC` (nav constant `ANALYTIC_AB`) |\n| Principal Analytic | `/analytic-principal` | `ANALYTIC_PRINCIPAL` |\n| HoD Analytic | `/analytic-hod` | `ANALYTIC_PRINCIPAL` (same as principal on the route meta) |\n| Item Analysis Analytics | `/sve-item-analysis-analytics` | `SVE_ITEM_ANALYSIS_ANALYTICS` |\n\nAdmin env names only (not values): `VITE_APP_ANALYTIC_BASE_URL`, `VITE_APP_ANALYTIC_SECRET_KEY`. See [systems.md](systems.md).\n\n## Teacher routes\n\nSVE nav, principal or HOD: `/item-analysis-analytics`, `/item-analysis-analytics/:sveExamTypeId`.\n\n## Modules\n\nModules: analytic.\n\nAPI: `/v1/analytics` (`POST /bulk`, `GET`). SVE item analysis is a separate SVE module cluster; this page only lists the analytics screens. Encoded rules: [sve-item-analysis.md](sve-item-analysis.md).\n\nPortal: admin for the four analytic views plus SVE item-analysis. Teacher HOD/principal for item-analysis-analytics.\n\n[Wiki home](README.md)',
+      userNote: 'Modul analitik yang menyediakan berbagai tampilan analisis bagi admin dan guru. Admin dapat mengakses Analytic Setting, AB Analytic, Principal Analytic, dan HoD Analytic, serta analisis item ujian (item analysis). Guru yang berperan sebagai kepala sekolah atau kepala departemen dapat melihat analisis item. Fitur ini membantu pengambilan keputusan berbasis data performa akademik.',
     },
     {
       id: 'master-data',
@@ -1022,6 +1726,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['systems'],
       tags: [],
       wikiFile: 'master-data.md',
+      wiki: '# Master data\n\nLeftover school and education masters that are not covered by campus, programme, classroom, or subject-in-year pages.\n\nSee also:\n\n- [campuses.md](campuses.md)\n- [programmes.md](programmes.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n- [sow.md](sow.md)\n- [file-sharing.md](file-sharing.md)\n\n## Routes\n\nAdmin only unless noted. Teacher and student do not own these masters.\n\n| Route | Module | Nav |\n| --- | --- | --- |\n| `/master-boards` | master-board | School Master Data. Related: board-teacher. |\n| `/subject-chapters` | subject-chapter | School Master Data. Edit `/subject-chapters/:subjectId/:masterLevelId/edit`. |\n| `/subject-libraries` | subject-library | School Master Data. Edit `/subject-libraries/:subjectId/:masterLevelId/edit`. |\n| `/graduation-schedule` | graduation-schedule | School Master Data. Also listed under [certificates.md](certificates.md). |\n| `/academic-departments` | academic-department | Education Master Data. Related: programme-academic-department, head-department. |\n| `/grading-guides` | grading-guide | Education Master Data. |\n| `/weighted-subject-levels` | weighted-subject-level | Education Master Data, under Subject. |\n| `/marking-types` | marking-type | Commented in `bbs/client/src/routes.js`. Not in `_nav.jsx`. Module folder exists. |\n\nRelated subject masters `/subjects` and `/master-subjects`: [subject-in-year.md](subject-in-year.md). Default grade weights and badges/medals are not this leftover table.\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Modul yang menghimpun data induk (master data) sekolah dan pendidikan yang belum tercakup di modul lain, seperti papan sekolah, bab mata pelajaran, pustaka mata pelajaran, departemen akademik, dan panduan penilaian. Hanya admin yang mengelola data induk ini. Data ini menjadi rujukan dasar bagi berbagai fitur akademik lainnya.',
     },
     {
       id: 'systems',
@@ -1034,6 +1740,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['master-data', 'media-storage', 'file-sharing'],
       tags: [],
       wikiFile: 'systems.md',
+      wiki: '# Systems\n\nLive and retired BBS LMS pieces, local ports, env names, and how the three SPAs call api_nest.\n\nSee also:\n\n- [access.md](access.md)\n- [rules.md](rules.md)\n- [open-questions.md](open-questions.md)\n- [sources.md](sources.md)\n\nSource of truth for local run commands: Ichsan, 2026-09-02.\n\n## Live pieces\n\nFive live pieces. One retired tree. Do not start the retired tree.\n\n| Piece | Path | Role | Local command | Port |\n| --- | --- | --- | --- | --- |\n| Admin portal | `bbs/client` | Back office | From that dir: npm run serve (vite --port 4000) | 4000 |\n| Teacher portal | `bbs/client-teacher` | Teacher, HOD, form class, SVE | From that dir: npm run serve (vite --port 4001) | 4001 |\n| Student portal | `bbs/client-student` | Student | From that dir: npm run start | CRA default 3000 |\n| Shared UI | `bbs/bbs-client-common` | Components used by teacher and student | From bbs root: yarn build-bcc | none |\n| Live API | `api_nest` | NestJS API | From that repo: npm run start:dev | `PORT` default 3008 |\n\nRetired: `bbs/api`. Express app. Unused and not related to the live stack. Do not start it. `bbs` root scripts `start` and `dev-be` still point at this tree. Ignore those scripts.\n\nBuild teacher or student only after yarn build-bcc. Those two portals depend on `file:../bbs-client-common/dist`.\n\nParent: `PARENT_WEB_LINK` exists on `api_nest/.env.example`. There is no parent SPA in `bbs`.\n\n`api_nest/docs/` is empty. `@nestjs/swagger` is a dependency. `main.ts` does not call `SwaggerModule`. Do not document a Swagger UI.\n\nRoute counts from source (approximate): admin `bbs/client/src/routes.js` 381 routes; teacher about 78; student 21.\n\n## Local API URL\n\nPortal `.env.sample` files still say `http://localhost:8080`. That is the retired Express port. Point `VITE_APP_API_BASE_URL`, `VITE_API_BASE_URL`, or `REACT_APP_API_BASE_URL` at the `api_nest` `PORT` you started (default 3008).\n\nEnv name split on the API: `api_nest/README.md` table says `ENABLE_ORM_LOG`. `api_nest/.env.example` has `ENABLE_ORM_LOGS`. Flag, do not pick a winner from this file. See [open-questions.md](open-questions.md).\n\n`OTP_ENABLED` is used in source (`api_nest/src/services/device-security.service.ts`) and is missing from `.env.example`. Verified 2026-09-30: `OTP_ENABLED` has zero matches in all three portal sources — the login-page toggle and localStorage bypass are gone (see [access.md](access.md)). Other names used in source and missing from `.env.example` (names only): `TEST_MODE`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET_REGION`, `S3_BUCKET_NAME`, `AUTH_LINK_PASSWORD`, `CRON_PASSWORD`, `PARENT_PASSWORD`, `SES_SENDER_EMAIL`, `SES_SENDER_NAME`. Cite `api_nest/src/configs/env.ts`, `database.service.ts`, `ses.config.ts`.\n\n## How the frontends call the API\n\nAll three portals use `src/actions/makeApiRequest.js` (path relative to that portal). The request is:\n\n    fetch(baseUrl + basePath + "v1" + url)\n\nAuthorization: Bearer token from `localStorage` key `bbs-web-token`. Refresh: `POST` `.../auth/refresh` using `bbs-web-refresh-token` (`src/global.js`). Request body shape: `{ data: { attributes: payload } }`. Response envelope: `{ data: { attributes } }` or `{ data: [], included: [] }`. 401: refresh, then reload, else `/login`.\n\nConfig files:\n\n- Admin: `bbs/client/src/config/api/client.config.js`. `VITE_APP_API_BASE_URL`, `VITE_APP_API_BASE_PATH`.\n- Teacher: `bbs/client-teacher/src/config/client.config.js` and `config/api/client.config.js`. `VITE_API_BASE_URL`, `VITE_API_BASE_PATH`.\n- Student: `bbs/client-student/src/config/api/client.config.js`. `REACT_APP_API_BASE_URL`, `REACT_APP_API_BASE_PATH`.\n\nConcatenation trap: the code always appends `"v1"`. Teacher `.env.sample` `VITE_API_BASE_PATH=/api/` is correct with that extra `v1`. Admin sample `VITE_APP_API_BASE_PATH=/api/v1` and student sample `REACT_APP_API_BASE_PATH=/api/v1` concatenate to `/api/v1v1`. Admin code fallback path is `"/api/"`. Use a base path that does not already contain `v1`, or change the concatenator. Do not copy the admin or student sample blindly.\n\nTeacher `.env.sample` also still lists unused CRA names `REACT_APP_API_BASE_URL` and `REACT_APP_API_BASE_PATH`.\n\n[Wiki home](README.md)',
+      userNote: 'Modul ini menjelaskan komponen sistem yang berjalan: tiga portal (admin, guru, siswa), aplikasi bersama antarmuka, dan satu API, beserta cara portal memanggil API. Portal admin untuk kantor belakang, portal guru untuk guru dan wali kelas, dan portal siswa untuk siswa. Ini bukan fitur untuk pengguna langsung, melainkan dasar teknis yang menjalankan seluruh layanan.',
     },
     {
       id: 'media-storage',
@@ -1046,6 +1754,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['file-sharing', 'sve-files'],
       tags: [],
       wikiFile: 'media-storage.md',
+      wiki: '# Media storage\n\nAdmin media library. File module is the shared upload helper, not the File Sharing nav.\n\nSee also:\n\n- [file-sharing.md](file-sharing.md)\n- [other-modules.md](other-modules.md)\n- [systems.md](systems.md)\n- [document-templates.md](document-templates.md)\n\n## Admin routes\n\nTop-level `finaMenu` item (not under File Sharing): `/media-storage`, `/media-storage/:mediaId`. Subject `MEDIA_STORAGE`.\n\nFile Sharing nav (`/file-sharing/academic-department-files`, `/file-sharing/subject-files`) is a different product surface. See [file-sharing.md](file-sharing.md).\n\n## Modules\n\nModules: media-storage, file.\n\nAPI: `/v1/mediaStorage`. S3 env names used in source and missing from `.env.example`: `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET_REGION`, `S3_BUCKET_NAME`. Names only. See [systems.md](systems.md).\n\nPortal: admin. Teacher File Sharing is the academic-department and subject-file nav, not this media-storage screen.\n\n[Wiki home](README.md)',
+      userNote: 'Modul perpustakaan media bagi admin untuk mengunggah dan mengelola berkas seperti gambar dan dokumen. Admin dapat menyimpan dan menelusuri berkas media lewat halaman ini. Berkas tersebut dapat dipakai ulang di berbagai bagian sistem, misalnya pada gambar CCA atau dokumen.',
     },
     {
       id: 'file-sharing',
@@ -1058,6 +1768,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['media-storage'],
       tags: [],
       wikiFile: 'file-sharing.md',
+      wiki: '# File sharing\n\nAcademic-department files and subject files. Admin and teacher share the same two paths. Student has no file-sharing nav.\n\nSee also:\n\n- [sow.md](sow.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n- [master-data.md](master-data.md)\n- [subject-in-year.md](subject-in-year.md)\n\n## Routes\n\n| Portal | Path | Notes |\n| --- | --- | --- |\n| Admin | `/file-sharing/academic-department-files` | `SUBJECT_MODULES.ACADEMIC_DEPARTMENT_FILE`. Also add, `:adfId`, edit. |\n| Admin | `/file-sharing/subject-files` | `SUBJECT_MODULES.SUBJECT_FILE`. Also add, `:sfId`, edit. |\n| Teacher | `/file-sharing/academic-department-files` | Details `:adfId`. |\n| Teacher | `/file-sharing/subject-files` | Details `:sfId`. |\n| Student | none | Student subject library is `/subjectLibrary` on [sow.md](sow.md). |\n\n## Modules\n\nModules: academic-department-file, subject-file, subject-library.\n\nNo encoded math in the scattered notes.\n\n[Wiki home](README.md)',
+      userNote: 'Modul berbagi berkas yang mencakup berkas departemen akademik dan berkas mata pelajaran. Admin dan guru memiliki akses ke dua jalur yang sama untuk mengunggah dan melihat berkas akademik tersebut. Siswa tidak memiliki akses dan mengakses pustaka mata pelajaran lewat jalur tersendiri.',
     },
     {
       id: 'open-questions',
@@ -1070,6 +1782,7 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['other-modules'],
       tags: [],
       wikiFile: 'open-questions.md',
+      wiki: '# Open questions\n\nFlagged contradictions from the catalog. Each heading states the conflict and links to the page that records the encoded rule. This page does not pick a winner unless that page already names one.\n\nSee also:\n\n- [README.md](README.md)\n- [systems.md](systems.md)\n- [cca.md](cca.md)\n- [awardees.md](awardees.md)\n- [cambridge.md](cambridge.md)\n- [prelims.md](prelims.md)\n- [secondary-gradebook.md](secondary-gradebook.md)\n- [access.md](access.md)\n- [report-types.md](report-types.md)\n- [report-generate.md](report-generate.md)\n- [secondary-gpa.md](secondary-gpa.md)\n- [spr-sed.md](spr-sed.md)\n- [sve.md](sve.md)\n- [sve-lock.md](sve-lock.md)\n- [sve-item-analysis.md](sve-item-analysis.md)\n\n## CCA quota Q4 versus section 4\n\nQ4 says when maleQuota or femaleQuota is set, total quota is ignored. Section 4 of [CCA_REMODEL.md](../CCA_REMODEL.md) says both total and gender must pass. Follow Q4 until the section 4 text is edited. Encoded rule: [cca.md](cca.md).\n\n## CCA coordinator cap\n\nPhase 2 says max 2. Data-model section says max 3 (cca-year-coordinator service). Unresolved. Encoded rule: [cca.md](cca.md).\n\n## JC on both grade-weight lists\n\nSecondary settings cover ids 7-17. Primary DefaultGradeWeights.jsx still lists ids 15-17. syncMasterLevels() already dropped 7-14 only. Encoded rule: [secondary-gradebook.md](secondary-gradebook.md).\n\n## Cambridge per-paper cells unused\n\nCambridge per-paper a*, a, b cells are unused on the gradebook path. threshold.avg_value ACTIVE is what grades. Third store is a trap for editors. Encoded rule: [cambridge.md](cambridge.md).\n\n## OTP UI toggle bypass\n\nRESOLVED (2026-09-30): the login-page toggle and the localStorage `OTP_ENABLED` switch are gone. `OTP_ENABLED` has zero matches across all three portal sources; both `Login.jsx` files keep only the OTP verify flow. Only the API env switch (`OTP_ENABLED`, default off) remains — encoded rule: [access.md](access.md).\n\n## Portal env host 8080 versus 3008\n\nPortal .env.sample hosts localhost:8080 vs live api_nest PORT 3008. Encoded rule: [systems.md](systems.md).\n\n## CCA registrations default pageSize 5\n\nUPDATED (2026-09-30): the `PageOptionsDto` default of 5 exists but `ccaRegistrations` findAll reads the query as untyped `any`, so the list is unbounded (probe: 6 rows, `pageCount: null`). Lists MUST pass an explicit pageSize — encoded rule: [cca.md](cca.md).\n\n## Portal path concatenation\n\nAdmin and student samples /api/v1 plus code v1 become /api/v1v1. Teacher VITE_API_BASE_PATH=/api/ is the working pattern. Admin fallback "/api/". Encoded rule: [systems.md](systems.md).\n\n## ENABLE_ORM_LOG versus ENABLE_ORM_LOGS\n\nENABLE_ORM_LOG (README) vs ENABLE_ORM_LOGS (.env.example). Encoded rule: [systems.md](systems.md).\n\n## Awardees encoded rules flagged for review\n\nAwardees: exact equality on UPPER gold and a_mark and PQP exceeding = 4. INNER JOIN drop-through drops students with no banding or homeroom teacher. Hardcoded subject names. NONE rows returned. These are encoded rules, flagged for policy review, not rewritten here. Encoded rule: [awardees.md](awardees.md).\n\n## CCA Q6 classroom-name parsing\n\nPer-level cap still on classroom-name parsing in cca-registration-rules.service.ts. Encoded rule: [cca.md](cca.md).\n\n## Secondary grade weights versioning\n\n[Secondary_Grade_Weights_Feature.md](../docs/Secondary_Grade_Weights_Feature.md) describes academic-year versioning and term-component settings. [SECONDARY_GRADEBOOK.md](../SECONDARY_GRADEBOOK.md) does not. Confirm the entity before treating versioning as shipped. Encoded rule: [secondary-gradebook.md](secondary-gradebook.md).\n\n## Prelims Q11 predicted PUM by term\n\n[PRELIMS_QNA.md](../PRELIMS_QNA.md) Q11: predicted PUM selection is by term in code, not by level, while JC is supposed to prefer as_predicted_pum. Encoded rule: [prelims.md](prelims.md).\n\n## PROJECT_KNOWLEDGE.md versus this wiki\n\n[PROJECT_KNOWLEDGE.md](../PROJECT_KNOWLEDGE.md) vs this wiki: Swagger, admin port, microservices, bbs/api as live, parent portal as a frontend. This wiki wins on those points. Encoded rule: [README.md](README.md) and [systems.md](systems.md).\n\n## SPR and SED helpers live, generate UI unused\n\n`createStudentSprReport` and `createStudentSedReport` plus `student-spr-report.hbs` and `student-sed-report.hbs` are live. `listReportsByTerm` comments SPR and SED out. Generate modal never offers them. `ReportCard.jsx` filters `SED` and `SPR` as unused. Teacher `/spr` and `/sed` routes are commented as of 2026-09-02. Encoded rule: [report-types.md](report-types.md), [spr-sed.md](spr-sed.md).\n\n## POST /reports and /reports/update both create()\n\nAdmin Cambridge generate posts `/v1/reports`. Other types post `/v1/reports/update`. Both controller methods call `reportService.create()`. Encoded rule: [report-generate.md](report-generate.md).\n\n## academicRankClassSize quirk\n\nGPA report sets `academicRankClassSize` to `` `1/${classYear.students.length}` `` with comment `:p`. Encoded quirk, not policy. Encoded rule: [secondary-gpa.md](secondary-gpa.md).\n\n## Admin SVE lock screen vs live nest\n\nAdmin `/sve-lock` calls `GET` and `PUT` `/sves/component/lock`. Those routes exist on retired `bbs/api`. `api_nest` `SveController` has no `component/lock`. Live blocking uses `SveDeadline.isLocked` on assign and timetable SPAs, not `SveExamType.lockDocument` or `lockAssignee`. Encoded rule: [sve-lock.md](sve-lock.md).\n\n## Item analysis MCQ option E vs view A to D\n\nImport and grade input accept MCQ keys `A` to `E`. `VIEW_SVE_ITEM_ANALYSIS_EXPRESSION` counts options A to D only. Encoded rule: [sve-item-analysis.md](sve-item-analysis.md), [sve-grade-input.md](sve-grade-input.md).\n\n## Unused student-report Handlebars files\n\n`student-gpa-transcript.hbs`, `student-mid-gpa-report.hbs`, and `student-as-prelim-report.hbs` have no helper reference. Also unused: `student-semester1-report-p1-2.hbs`, `index.html`. Encoded rule: [report-types.md](report-types.md).\n\n[Wiki home](README.md)',
     },
     {
       id: 'other-modules',
@@ -1082,6 +1795,8 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: [],
       tags: [],
       wikiFile: 'other-modules.md',
+      wiki: '# Other modules\n\nLive api_nest modules that have no dedicated product note. Treat as live code, not as specified product math.\n\nSee also:\n\n- [identity.md](identity.md)\n- [academic-structure.md](academic-structure.md)\n- [systems.md](systems.md)\n- [certificates.md](certificates.md)\n- [report-types.md](report-types.md)\n\nModules live under `api_nest/src/modules/`. Group titles on catalog pages are not an ACL. A name with * is a prefix, not a complete inventory.\n\n`teacher-leave` is a live module as of 2026-09-30: `api_nest/src/modules/teacher-leave/` with controller path `leaves` (`leave.controller.ts:25`). The 2026-09-02 note that said the folder does not exist is outdated — the module arrived with a later pull. Treat it as live code with no product note yet.\n\n## Cluster\n\nNot covered by a dedicated note. Cluster only: analytic; file, media-storage; mailer, notification; question, student-answer; language-spoken; general-purpose; external-service-integration; master-account; master-document-template; master-subject-coordinator; bmt-week; marking-type; total-mark; grading-guide; weighted-subject-level; programme-academic-department.\n\n`grading-guide` drives the LO rewrite on [report-types.md](report-types.md): if `REPORT_TERM` or `REPORT_SEMESTER` and `GradingGuide.gradingGuideType === LEARNING_OUTCOME`, rewrite to `LEARNING_OUTCOME` before the helper switch.\n\n[Wiki home](README.md)',
+      userNote: 'Modul ini merangkum berbagai modul live yang tidak memiliki catatan produk tersendiri, seperti analytic, mailer, notification, question, language-spoken, dan lain-lain. Ini berfungsi sebagai penanda bahwa modul-modul tersebut adalah kode aktif, bukan spesifikasi aturan bisnis. Tidak ada fitur khusus untuk pengguna langsung di sini.',
     },
     {
       id: 'sources',
@@ -1094,14 +1809,26 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: [],
       tags: [],
       wikiFile: 'sources.md',
+      wiki: '# Sources\n\nSource notes the catalog was drawn from, as relative links. Paths are local, not git.\n\nSee also:\n\n- [README.md](README.md)\n- [systems.md](systems.md)\n- [cambridge.md](cambridge.md)\n- [attendance.md](attendance.md)\n- [open-questions.md](open-questions.md)\n\nDrawn from these files under ~/Work/klabs/binabangsa and docs/.\n\n## Root notes\n\n- [ATTENDANCE_REQUIREMENTS_COMPLIANCE.md](../ATTENDANCE_REQUIREMENTS_COMPLIANCE.md)\n- [CAMBRIDGE_COMPONENT_MODEL.md](../CAMBRIDGE_COMPONENT_MODEL.md)\n- [CAMBRIDGE_GRADING.md](../CAMBRIDGE_GRADING.md)\n- [CAMBRIDGE_GRADING_CALCULATION_SYSTEM.md](../CAMBRIDGE_GRADING_CALCULATION_SYSTEM.md)\n- [CAMBRIDGE_GRADING_USER_STORIES.md](../CAMBRIDGE_GRADING_USER_STORIES.md)\n- [CCA_REMODEL.md](../CCA_REMODEL.md)\n- [Educa8_API_Docs.md](../Educa8_API_Docs.md)\n- [GEMINI.md](../GEMINI.md)\n- [LOGIC_CHANGES_SUMMARY.md](../LOGIC_CHANGES_SUMMARY.md)\n- [OTP_TOGGLE_GUIDE.md](../OTP_TOGGLE_GUIDE.md)\n- [PRD_SVE_Threshold_Integration.md](../PRD_SVE_Threshold_Integration.md)\n- [PRELIMS_MIGRATION_PLAN.md](../PRELIMS_MIGRATION_PLAN.md)\n- [PRELIMS_QNA.md](../PRELIMS_QNA.md)\n- [PRINTING_DETAIL_LOGIC.md](../PRINTING_DETAIL_LOGIC.md)\n- [PROJECT_KNOWLEDGE.md](../PROJECT_KNOWLEDGE.md) (architecture sketch only; displaced on conflict)\n- [REALTIME_REPORTS_PLAN.md](../REALTIME_REPORTS_PLAN.md)\n- [SECONDARY_GRADEBOOK.md](../SECONDARY_GRADEBOOK.md)\n- [SECONDARY_GRADE_MIGRATION_PLAN.md](../SECONDARY_GRADE_MIGRATION_PLAN.md)\n- [STUDENT_TRANSFER_FEATURE_DOCUMENTATION.md](../STUDENT_TRANSFER_FEATURE_DOCUMENTATION.md)\n- [view_student_awardees_rules.md](../view_student_awardees_rules.md)\n- [view_student_awardees.sql](../view_student_awardees.sql)\n\n## docs/\n\n- [cambridge-pum-formula.md](../docs/cambridge-pum-formula.md)\n- [IGCSE_ALevel_Grading_Plan.md](../docs/IGCSE_ALevel_Grading_Plan.md)\n- [Secondary_Grade_Weights_Feature.md](../docs/Secondary_Grade_Weights_Feature.md)\n- [SVE_Syllabus_AS_Level_Integration.md](../docs/SVE_Syllabus_AS_Level_Integration.md)\n- [Threshold_Feature_Documentation.md](../docs/Threshold_Feature_Documentation.md)\n\n## Repo files used for commands and wiring\n\nNot product math:\n\n- [bbs/client/package.json](../bbs/client/package.json) (serve binds port 4000)\n- [bbs/client-teacher/package.json](../bbs/client-teacher/package.json) (serve binds port 4001)\n- [bbs/client-student/package.json](../bbs/client-student/package.json) (start is CRA)\n- [bbs/package.json](../bbs/package.json) (build-bcc; root start and dev-be hit retired bbs/api)\n- [api_nest/package.json](../api_nest/package.json) (start:dev)\n- [api_nest/README.md](../api_nest/README.md) (PORT default 3008; ENABLE_ORM_LOG table)\n- [api_nest/.env.example](../api_nest/.env.example) (PARENT_WEB_LINK, ENABLE_ORM_LOGS, portal link names)\n- [bbs/client/.env.sample](../bbs/client/.env.sample), [bbs/client-teacher/.env.sample](../bbs/client-teacher/.env.sample), [bbs/client-student/.env.sample](../bbs/client-student/.env.sample)\n- [bbs/client/src/actions/makeApiRequest.js](../bbs/client/src/actions/makeApiRequest.js) and the teacher and student copies\n- [api_nest/src/modules/](../api_nest/src/modules/) directory listing, 2026-09-02\n\nAlso used: workspace source brief gathered 2026-09-02 (ports, concatenation trap, swagger not wired, route counts). Ichsan 2026-09-02 for the run commands in Systems.\n\n[Wiki home](README.md)',
     },
     // ---- Backend API modules (api_nest, 229 modules) ----
     {
       id: 'auth',
       title: 'Auth',
+      userNote: 'Auth adalah sistem login dan keamanan akun untuk semua pengguna portal admin, guru, dan siswa. Fitur ini menangani proses masuk, lupa kata sandi, pengubahan kata sandi, verifikasi OTP, serta login khusus untuk orang tua. Setiap permintaan terautentikasi memakai token JWT.',
       category: 'identity',
       description: 'JWT / OTP / refresh flows for all roles. One of the most active modules in api_nest.',
-      apiRoute: 'GET×4, POST×17 — /v1/auth',
+      apiRoute: 'GET×4, POST×17 — /api/v1/auth',
+      spec: {
+        api: {
+          basePath: '/api/v1/auth',
+          module: 'auth',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'access',
       crud: [
@@ -1116,9 +1843,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'user-role',
       title: 'User Roles & Types',
+      userNote: 'User Roles & Types dipakai admin untuk mendefinisikan jenis pengguna dan peran beserta kumpulan izin (CASL) yang melekat padanya. Setiap peran dapat dikaitkan dengan jenis pengguna tertentu, jabatan, serta cakupan kampus. Peran inilah yang menentukan hak akses seseorang di seluruh sistem.',
       category: 'identity',
       description: 'Role definitions, extensions and user types that gate every module via CASL.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/userRole',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/userRole',
+      spec: {
+        api: {
+          basePath: '/api/v1/userRole',
+          module: 'userRole',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'identity',
       crud: [
@@ -1132,9 +1871,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'user-profile',
       title: 'User Profiles',
+      userNote: 'User Profiles menyimpan data pribadi setiap pengguna, seperti foto, data kelahiran, kewarganegaraan, alamat, kontak, dan dokumen identitas seperti KTP, paspor, atau KITAS. Profil ini terhubung ke akun guru, admin, pegawai, atau orang tua yang bersangkutan. Data ini dipakai untuk kelengkapan administrasi dan dokumen resmi sekolah.',
       category: 'identity',
       description: 'Profile data per user entity (avatar, preferences, contact info).',
-      apiRoute: 'GET×2, POST, PUT — /v1/userProfiles',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/userProfiles',
+      spec: {
+        api: {
+          basePath: '/api/v1/userProfiles',
+          module: 'userProfiles',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'identity',
       crud: [
@@ -1147,9 +1898,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'organization',
       title: 'Organizations',
+      userNote: 'Modul pengelolaan data organisasi yang menyimpan dan mengatur informasi struktur organisasi. Admin dapat membuat, melihat, mengubah, dan menghapus data organisasi. Data ini menjadi bagian dari data induk yang menopang struktur sekolah.',
       category: 'core',
       description: 'Multi-organization/school tenant records.',
-      apiRoute: 'GET×3, POST, PUT, DELETE — /v1/organizations',
+      apiRoute: 'GET×3, POST, PUT, DELETE — /api/v1/organizations',
+      spec: {
+        api: {
+          basePath: '/api/v1/organizations',
+          module: 'organizations',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-core',
       crud: [
@@ -1162,9 +1926,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'branch',
       title: 'Branches',
+      userNote: 'Modul pengelolaan data cabang (branch) sekolah. Admin dapat membuat, melihat, mengubah, dan menghapus data cabang. Data cabang ini dipakai untuk mengelompokkan siswa, staf, dan proses administrasi berdasarkan lokasi sekolah.',
       category: 'core',
       description: 'Branch entities under organizations.',
-      apiRoute: 'GET×3, POST, PUT, DELETE — /v1/branches',
+      apiRoute: 'GET×3, POST, PUT, DELETE — /api/v1/branches',
+      spec: {
+        api: {
+          basePath: '/api/v1/branches',
+          module: 'branches',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-core',
       crud: [
@@ -1177,9 +1954,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'notification',
       title: 'Notifications',
+      userNote: 'Modul notifikasi yang memberi tahu pengguna tentang berbagai kejadian penting di sistem. Pengguna dapat menandai satu notifikasi sebagai sudah dibaca atau menandai semuanya sekaligus. Fitur ini membantu pengguna tetap mengikuti informasi terbaru tanpa melewatkan hal penting.',
       category: 'core',
       description: 'Read/update notification state across portals.',
-      apiRoute: 'PUT×2 — /v1/notifications',
+      apiRoute: 'PUT×2 — /api/v1/notifications',
+      spec: {
+        api: {
+          basePath: '/api/v1/notifications',
+          module: 'notifications',
+          endpoints: [
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-core',
       crud: [
@@ -1191,9 +1978,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'leadgen',
       title: 'Leadgen',
+      userNote: 'Modul pengumpulan calon pendaftar (lead) dari luar, yang menyimpan data orang tua seperti nama, email, nomor telepon, alamat, dan daftar anak yang ingin didaftarkan. Data lead dipakai tim admission untuk menindaklanjuti calon siswa sebelum mendaftar resmi. Setiap lead memiliki status mulai dari diterima (received) hingga tahap tindak lanjut.',
       category: 'admissions',
       description: 'Prospect/lead capture feeding the admission pipeline.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/leadgens',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/leadgens',
+      spec: {
+        api: {
+          basePath: '/api/v1/leadgens',
+          module: 'leadgens',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'admissions',
       crud: [
@@ -1206,9 +2006,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'admission-agreement',
       title: 'Admission Agreement',
+      userNote: 'Modul perjanjian penerimaan yang menyimpan dokumen kesepakatan yang disetujui orang tua calon siswa. Dokumen dihasilkan dari template dan disimpan sebagai bukti bahwa orang tua telah menyetujui ketentuan sekolah. Admin mengelola perjanjian ini sebagai bagian dari proses penerimaan siswa.',
       category: 'admissions',
       description: 'Agreements/consent records signed during admission.',
-      apiRoute: 'GET×2, POST, PUT — /v1/admissionAgreements',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/admissionAgreements',
+      spec: {
+        api: {
+          basePath: '/api/v1/admissionAgreements',
+          module: 'admissionAgreements',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'admissions',
       crud: [
@@ -1220,9 +2032,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'admission-document',
       title: 'Admission Documents',
+      userNote: 'Modul dokumen penerimaan yang mengelola berkas-berkas yang diunggah calon siswa selama proses pendaftaran. Setiap dokumen memiliki status pemeriksaan, misalnya sedang ditinjau, dan dapat disertai catatan penolakan bila tidak sesuai. Admin bertugas memverifikasi kelengkapan dan keabsahan dokumen ini.',
       category: 'admissions',
       description: 'Document uploads attached to admission records.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/admissionDocuments',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/admissionDocuments',
+      spec: {
+        api: {
+          basePath: '/api/v1/admissionDocuments',
+          module: 'admissionDocuments',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'document-verification',
       crud: [
@@ -1235,9 +2060,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'placement-test-schedule',
       title: 'Placement Test Schedule',
+      userNote: 'Modul penjadwalan tes penempatan bagi calon siswa, mencakup waktu tes, program dan level yang dituju, serta status jadwal. Admin mengatur jadwal tes untuk setiap calon siswa dan dapat mencatat alasan bila jadwal diubah atau dibatalkan. Setiap jadwal menyimpan riwayat perubahan dan jumlah percobaan tes.',
       category: 'admissions',
       description: 'Scheduling of placement tests with history.',
-      apiRoute: 'GET×3, POST×2, PUT, DELETE — /v1/placementTestSchedules',
+      apiRoute: 'GET×3, POST×2, PUT, DELETE — /api/v1/placementTestSchedules',
+      spec: {
+        api: {
+          basePath: '/api/v1/placementTestSchedules',
+          module: 'placementTestSchedules',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'placement-tests',
       crud: [
@@ -1250,9 +2088,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'placement-test-attempt',
       title: 'Placement Test Attempt',
+      userNote: 'Modul yang mencatat pengerjaan tes penempatan oleh calon siswa, termasuk jawaban, poin nilai, dan status pengerjaan. Guru atau admin dapat menilai hasil pengerjaan dan menetapkan nilainya. Fitur ini memisahkan proses pengerjaan tes dari hasil akhir, sehingga percobaan tes dapat dicatat lebih dari sekali bila diperlukan.',
       category: 'admissions',
       description: 'Student attempts at placement tests and their results pipeline.',
-      apiRoute: 'GET×3, POST, PUT×3, DELETE — /v1/placementTestAttempts',
+      apiRoute: 'GET×3, POST, PUT×3, DELETE — /api/v1/placementTestAttempts',
+      spec: {
+        api: {
+          basePath: '/api/v1/placementTestAttempts',
+          module: 'placementTestAttempts',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'placement-tests',
       crud: [],
@@ -1262,9 +2113,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'placement-test-result',
       title: 'Placement Test Result',
+      userNote: 'Modul yang menyimpan hasil akhir tes penempatan calon siswa, mencakup nilai wawancara, observasi, rapor, serta nilai mata pelajaran, beserta catatan penilaian. Admin dan guru mengisi dan meninjau hasil ini sebagai dasar keputusan penerimaan. Setiap hasil memiliki status, misalnya sedang ditinjau, hingga dinyatakan final.',
       category: 'admissions',
       description: 'Computed results that drive class placement decisions.',
-      apiRoute: 'GET×2, POST×2, PUT, DELETE — /v1/placementTestResults',
+      apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/placementTestResults',
+      spec: {
+        api: {
+          basePath: '/api/v1/placementTestResults',
+          module: 'placementTestResults',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'placement-tests',
       crud: [],
@@ -1274,9 +2138,23 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'syllabus',
       title: 'Syllabus',
+      userNote: 'Syllabus mengelola silabus Cambridge untuk satu mata pelajaran, satu jenis kualifikasi (IGCSE, AS Level, A Level), dan rentang tahun berlaku tertentu. Admin dan guru memakai fitur ini untuk membuat, melihat, dan mengubah silabus, termasuk keterkaitannya dengan skema nilai dan komponen ujian, agar isi penilaian Cambridge selalu selaras dengan versi silabus yang berlaku.',
       category: 'academic',
       description: 'Curriculum syllabus definitions with components.',
-      apiRoute: 'GET×7, POST, PATCH×2, PUT, DELETE×2 — /v1/syllabus',
+      apiRoute: 'GET×7, POST, PATCH×2, PUT, DELETE×2 — /api/v1/syllabus',
+      spec: {
+        api: {
+          basePath: '/api/v1/syllabus',
+          module: 'syllabus',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'academic-structure',
       crud: [
@@ -1291,9 +2169,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'syllabus-component',
       title: 'Syllabus Components',
+      userNote: 'Syllabus Components mengelola isi grid silabus Cambridge, yaitu setiap sel pada tabel silabus per baris dan kolom, beserta nilainya. Admin dan guru memakai fitur ini untuk menambah dan mengubah komponen silabus secara massal maupun per kelompok, sehingga susunan kertas dan bobot pada sebuah silabus tersimpan rapi.',
       category: 'academic',
       description: 'Sub-components of a syllabus (units, sections).',
-      apiRoute: 'POST×3, DELETE×2 — /v1/syllabusComponent',
+      apiRoute: 'POST×3, DELETE×2 — /api/v1/syllabusComponent',
+      spec: {
+        api: {
+          basePath: '/api/v1/syllabusComponent',
+          module: 'syllabusComponent',
+          endpoints: [
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'syllabus',
       crud: [],
@@ -1303,9 +2192,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'subject-chapter',
       title: 'Subject Chapters',
+      userNote: 'Subject Chapters mengelola daftar bab (chapter) dalam sebuah mata pelajaran untuk level tertentu, lengkap dengan urutannya. Admin dan guru memakai fitur ini untuk membuat, melihat, dan menyusun bab secara massal, yang menjadi kerangka tempat lesson dan materi Subject Library ditempatkan.',
       category: 'academic',
       description: 'Chapter groupings inside subjects for lesson organization.',
-      apiRoute: 'GET, POST — /v1/subjectChapters',
+      apiRoute: 'GET, POST — /api/v1/subjectChapters',
+      spec: {
+        api: {
+          basePath: '/api/v1/subjectChapters',
+          module: 'subjectChapters',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'subjects-topics',
       crud: [
@@ -1317,9 +2217,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'subject-library',
       title: 'Subject Library',
+      userNote: 'Subject Library adalah perpustakaan materi pembelajaran per mata pelajaran, level, dan term yang berisi kumpulan lesson. Guru menyusun dan mengatur urutan lesson di dalamnya, dan siswa membaca perpustakaan ini dari menu subject library untuk mengakses materi belajar yang telah disiapkan.',
       category: 'academic',
       description: 'Reusable lesson library within a subject, assigned to classes.',
-      apiRoute: 'GET, POST×2, PUT×2 — /v1/subjectLibraries',
+      apiRoute: 'GET, POST×2, PUT×2 — /api/v1/subjectLibraries',
+      spec: {
+        api: {
+          basePath: '/api/v1/subjectLibraries',
+          module: 'subjectLibraries',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'subjects-topics',
       crud: [],
@@ -1329,9 +2241,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'weighted-subject-level',
       title: 'Weighted Subject / Level',
+      userNote: 'Weighted Subject / Level mengatur bobot (weight) setiap mata pelajaran pada sebuah level, yang dipakai untuk menghitung nilai akhir atau gradebook secara tertimbang. Admin staf TU memakai fitur ini untuk menetapkan dan menyesuaikan bobot mata pelajaran per level sesuai ketentuan kurikulum sekolah.',
       category: 'academic',
       description: 'Weighting rules linking subjects to levels for grading.',
-      apiRoute: 'GET×2, POST, PUT, DELETE×2 — /v1/weightedSubjectLevel',
+      apiRoute: 'GET×2, POST, PUT, DELETE×2 — /api/v1/weightedSubjectLevel',
+      spec: {
+        api: {
+          basePath: '/api/v1/weightedSubjectLevel',
+          module: 'weightedSubjectLevel',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'academic-structure',
       crud: [],
@@ -1341,9 +2266,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'transfer-audit',
       title: 'Transfer Audit',
+      userNote: 'Transfer Audit adalah catatan riwayat setiap operasi pemindahan siswa, mencakup jenis operasi, siswa asal dan tujuan, tahun ajaran, kampus, serta status keberhasilannya. Admin dapat menelusuri riwayat pemindahan untuk siswa tertentu maupun menyaringnya berdasarkan kampus, tahun ajaran, status, dan jenis operasi. Catatan ini berguna untuk penelusuran dan pemeriksaan (audit) jika terjadi masalah.',
       category: 'identity',
       description: 'Audit log of student transfers across class years.',
-      apiRoute: 'GET×7, POST — /v1/classYears/transfer-audit',
+      apiRoute: 'GET×7, POST — /api/v1/classYears/transfer-audit',
+      spec: {
+        api: {
+          basePath: '/api/v1/classYears/transfer-audit',
+          module: 'classYears/transfer-audit',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'student-transfer',
       crud: [],
@@ -1353,9 +2289,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-promotion',
       title: 'Student Promotion API',
+      userNote: 'Student Promotion mencatat status kenaikan siswa berdasarkan laporan hasil belajar, sehingga keputusan naik atau tidak naik tersimpan sebagai data resmi. Admin dan guru memakai fitur ini untuk menetapkan dan memperbarui status promosi siswa baik satu per satu maupun secara massal.',
       category: 'academic',
       description: 'Backend for bulk promote operations.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/studentPromotions',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/studentPromotions',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentPromotions',
+          module: 'studentPromotions',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'promote',
       crud: [
@@ -1367,9 +2315,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'bmt-week',
       title: 'BMT Week',
+      userNote: 'BMT Week mengelola penjadwalan minggu ujian BMT dengan mengaitkannya ke pekan tahun ajaran dan jenis ujian SVE, serta menyimpan riwayat pengajuan dan persetujuannya. Admin dan guru memakai fitur ini untuk mengatur topik minggu BMT, mengajukan perubahan jadwal, menyetujui pengajuan, dan melihat laporan.',
       category: 'academic',
       description: 'BMT week scheduling with history, tied to academic years.',
-      apiRoute: 'GET×2, POST×2, PUT×2, DELETE — /v1/bmtWeeks',
+      apiRoute: 'GET×2, POST×2, PUT×2, DELETE — /api/v1/bmtWeeks',
+      spec: {
+        api: {
+          basePath: '/api/v1/bmtWeeks',
+          module: 'bmtWeeks',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'academic-year',
       crud: [],
@@ -1379,9 +2340,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'campus-gate',
       title: 'Campus Gates',
+      userNote: 'Campus Gates mengelola daftar gerbang (gate) pada setiap kampus sekolah. Admin staf TU dapat menambah, melihat, mengubah, dan menghapus data gerbang, yang dipakai sebagai acuan pencatatan kehadiran siswa dan pengelolaan permintaan penjemputan siswa di kampus terkait.',
       category: 'academic',
       description: 'Gate records per campus (pickup/access points).',
-      apiRoute: 'GET×2, POST×2, PATCH, DELETE — /v1/campusGates',
+      apiRoute: 'GET×2, POST×2, PATCH, DELETE — /api/v1/campusGates',
+      spec: {
+        api: {
+          basePath: '/api/v1/campusGates',
+          module: 'campusGates',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'campuses',
       crud: [],
@@ -1391,9 +2365,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'grading-guide',
       title: 'Grading Guide',
+      userNote: 'Grading Guide adalah panduan penilaian yang menjelaskan aturan dan kriteria pemberian nilai di sekolah. Admin atau koordinator menyusun panduan ini agar guru menilai secara konsisten. Guru menggunakan panduan ini sebagai acuan saat memasukkan nilai.',
       category: 'assessment',
       description: 'Scoring guides used by teachers when marking.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/gradingGuides',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/gradingGuides',
+      spec: {
+        api: {
+          basePath: '/api/v1/gradingGuides',
+          module: 'gradingGuides',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1403,9 +2390,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'marking-type',
       title: 'Marking Types',
+      userNote: 'Marking Types mengatur jenis-jenis penilaian atau cara pemberian nilai yang digunakan sekolah, misalnya penilaian berbasis angka atau predikat. Admin mendefinisikan tipe-tipe ini agar sesuai kebijakan penilaian. Fitur ini memastikan nilai siswa tercatat dengan format yang benar.',
       category: 'assessment',
       description: 'Marking method definitions (rubric, points, etc).',
-      apiRoute: 'GET×2, POST, PUT — /v1/markingTypes',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/markingTypes',
+      spec: {
+        api: {
+          basePath: '/api/v1/markingTypes',
+          module: 'markingTypes',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1415,9 +2414,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'grade-schema',
       title: 'Grade Schema',
+      userNote: 'Grade Schema mengatur skema penilaian yang menentukan komponen apa saja yang membentuk nilai akhir siswa. Admin menyusun skema ini agar perhitungan nilai mengikuti standar sekolah. Guru mengikuti skema tersebut saat mengisi nilai sehingga hasilnya konsisten.',
       category: 'assessment',
       description: 'Letter/grade mapping schemas.',
-      apiRoute: 'GET×2, POST, PATCH, DELETE — /v1/gradeSchema',
+      apiRoute: 'GET×2, POST, PATCH, DELETE — /api/v1/gradeSchema',
+      spec: {
+        api: {
+          basePath: '/api/v1/gradeSchema',
+          module: 'gradeSchema',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [
@@ -1430,9 +2442,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'grade-weight',
       title: 'Grade Weight',
+      userNote: 'Grade Weight mengatur bobot kontribusi tiap komponen penilaian terhadap nilai akhir siswa. Admin menetapkan persentase bobot agar nilai akhir mencerminkan prioritas penilaian sekolah. Fitur ini memastikan perhitungan nilai akhir dilakukan secara adil dan terukur.',
       category: 'assessment',
       description: 'Weighting of assessments into term marks, plus defaults.',
-      apiRoute: 'GET×3, POST, PUT, DELETE — /v1/gradeWeights + /v1/defaultGradeWeights',
+      apiRoute: 'GET×3, POST, PUT, DELETE — /api/v1/gradeWeights + /api/v1/defaultGradeWeights',
+      spec: {
+        api: {
+          basePath: '/api/v1/gradeWeights',
+          module: 'gradeWeights',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1442,9 +2467,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'gradebook-table',
       title: 'Gradebook Table',
+      userNote: 'Gradebook Table menampilkan nilai siswa dalam bentuk tabel per kelas dan mata pelajaran. Guru dapat melihat dan mengelola nilai siswa langsung dalam tampilan tabel yang terstruktur. Fitur ini memudahkan pemantauan serta penyuntingan nilai secara sekaligus.',
       category: 'assessment',
       description: 'Tabular gradebook configuration per class/subject.',
-      apiRoute: 'GET×2, POST×2, PUT×3, DELETE — /v1/gradebookTables',
+      apiRoute: 'GET×2, POST×2, PUT×3, DELETE — /api/v1/gradebookTables',
+      spec: {
+        api: {
+          basePath: '/api/v1/gradebookTables',
+          module: 'gradebookTables',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [
@@ -1457,9 +2495,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'gradebook-exam',
       title: 'Gradebook Exam',
+      userNote: 'Gradebook Exam mengelola komponen penilaian berbasis ujian di dalam Gradebook, seperti ujian tengah tahun atau ujian akhir. Guru memasukkan nilai ujian per siswa dan sistem mengaitkannya dengan perhitungan nilai akhir. Fitur ini memisahkan dan mengorganisasi nilai ujian dari komponen lain.',
       category: 'assessment',
       description: 'Exam records inside gradebooks (prelims etc).',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/gradebookExams',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/gradebookExams',
+      spec: {
+        api: {
+          basePath: '/api/v1/gradebookExams',
+          module: 'gradebookExams',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'prelims',
       crud: [],
@@ -1469,9 +2520,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'grade-dca',
       title: 'DCA Grade',
+      userNote: 'DCA Grade mengelola nilai DCA (Daily Continuous Assessment), yaitu penilaian berkelanjutan harian siswa. Guru memasukkan nilai DCA yang menjadi bagian dari nilai akademik siswa. Fitur ini memastikan penilaian harian tercatat dan diperhitungkan dalam nilai akhir.',
       category: 'assessment',
       description: 'Daily classwork assessment grading.',
-      apiRoute: 'GET×2, POST — /v1/dca',
+      apiRoute: 'GET×2, POST — /api/v1/dca',
+      spec: {
+        api: {
+          basePath: '/api/v1/dca',
+          module: 'dca',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1481,9 +2543,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-grade',
       title: 'Student Grade',
+      userNote: 'Student Grade menyimpan dan mengelola nilai setiap siswa pada tiap mata pelajaran atau komponen penilaian. Guru memasukkan dan memperbarui nilai, lalu sistem menampilkannya untuk pelaporan. Fitur ini menjadi sumber data utama nilai siswa di seluruh Smartbag.',
       category: 'assessment',
       description: 'Per-student grade records.',
-      apiRoute: 'GET×2, POST, PUT — /v1/studentGrades',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/studentGrades',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentGrades',
+          module: 'studentGrades',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1493,9 +2567,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'total-mark',
       title: 'Total Mark',
+      userNote: 'Total Mark menghitung dan menyimpan nilai total akhir siswa per mata pelajaran dari berbagai komponen penilaian. Guru atau sistem menggabungkan komponen nilai menjadi satu angka total. Fitur ini menghasilkan nilai akhir yang dipakai untuk laporan dan transkrip.',
       category: 'assessment',
       description: 'Computed total marks across weighted components.',
-      apiRoute: 'GET×2, POST, PUT — /v1/totalMarks',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/totalMarks',
+      spec: {
+        api: {
+          basePath: '/api/v1/totalMarks',
+          module: 'totalMarks',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'gradebooks',
       crud: [],
@@ -1505,9 +2591,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'secondary-grade-weight',
       title: 'Secondary Grade Weight',
+      userNote: 'Secondary Grade Weight mengatur bobot komponen penilaian khusus jenjang secondary, seperti CA, MYE, dan FYE, termasuk konfigurasi tiap term. Admin menetapkan bobot dan persentase komponen agar nilai akhir dihitung sesuai kebijakan jenjang secondary. Fitur ini memastikan perhitungan nilai secondary konsisten sejak awal.',
       category: 'assessment',
       description: 'Secondary-specific grade weighting rules.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/secondaryGradeWeights',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/secondaryGradeWeights',
+      spec: {
+        api: {
+          basePath: '/api/v1/secondaryGradeWeights',
+          module: 'secondaryGradeWeights',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'secondary-gradebook',
       crud: [],
@@ -1517,9 +2616,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-secondary-grade',
       title: 'Student Secondary Grade',
+      userNote: 'Student Secondary Grade menyimpan nilai siswa jenjang secondary untuk tiap komponen penilaian. Guru memasukkan nilai, lalu sistem mengolahnya menjadi nilai akhir sesuai bobot yang berlaku. Fitur ini mendukung perhitungan ulang nilai secara massal untuk tahun ajaran tertentu.',
       category: 'assessment',
       description: 'Secondary student grade entries.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/studentSecondaryGrades',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/studentSecondaryGrades',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentSecondaryGrades',
+          module: 'studentSecondaryGrades',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'secondary-gradebook',
       crud: [],
@@ -1529,9 +2640,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-cambridge-grade',
       title: 'Cambridge Grade',
+      userNote: 'Cambridge Grade mengelola nilai siswa untuk mata pelajaran berbasis Cambridge. Guru memasukkan nilai berdasarkan ruang lingkup mata pelajaran dan tahun ajaran, serta dapat mengisi prediksi nilai (predicted grade). Fitur ini mendukung pelaporan dan penilaian sesuai standar Cambridge.',
       category: 'assessment',
       description: 'Cambridge grade records with import logs.',
-      apiRoute: 'GET×4, POST×5 — /v1/student-cambridge-grade',
+      apiRoute: 'GET×4, POST×5 — /api/v1/student-cambridge-grade',
+      spec: {
+        api: {
+          basePath: '/api/v1/student-cambridge-grade',
+          module: 'student-cambridge-grade',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'cambridge',
       crud: [],
@@ -1541,9 +2663,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-transcript-api',
       title: 'Student Transcript API',
+      userNote: 'Student Transcript menghasilkan transkrip akademik siswa yang memuat rekap nilai sepanjang masa belajar. Admin atau guru dapat membuat transkrip per siswa maupun massal, lalu mengunduhnya dalam bentuk PDF. Fitur ini menyediakan dokumen resmi capaian akademik siswa.',
       category: 'assessment',
       description: 'Transcript generation endpoints.',
-      apiRoute: 'GET×2, POST×3, PUT — /v1/studentTranscripts',
+      apiRoute: 'GET×2, POST×3, PUT — /api/v1/studentTranscripts',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentTranscripts',
+          module: 'studentTranscripts',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'student-transcripts',
       crud: [
@@ -1555,9 +2689,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-report-api',
       title: 'Student Report API',
+      userNote: 'Student Report mengelola data laporan siswa yang menampung nilai, sikap, kehadiran, dan komentar pendukung. Guru dan admin membuat serta memperbarui laporan tiap siswa. Fitur ini menjadi dasar pembuatan laporan dan sertifikat yang dibagikan ke orang tua.',
       category: 'assessment',
       description: 'Report generation endpoints per student.',
-      apiRoute: 'GET×2, POST×2 — /v1/studentReports',
+      apiRoute: 'GET×2, POST×2 — /api/v1/studentReports',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentReports',
+          module: 'studentReports',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'report-generate',
       crud: [],
@@ -1567,9 +2712,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-spr',
       title: 'Student SPR',
+      userNote: 'Student SPR mengelola Student Progress Report tiap siswa, yaitu catatan perkembangan belajar siswa. Guru dan admin mengisi serta memperbarui isi laporan ini untuk setiap siswa. Fitur ini memudahkan pemantauan kemajuan siswa dan pelaporannya kepada orang tua.',
       category: 'assessment',
       description: 'Student Progress Report records.',
-      apiRoute: 'GET×4, POST, PUT — /v1/studentSprs',
+      apiRoute: 'GET×4, POST, PUT — /api/v1/studentSprs',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentSprs',
+          module: 'studentSprs',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'spr-sed',
       crud: [],
@@ -1579,9 +2736,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-sed',
       title: 'Student SED',
+      userNote: 'Student SED mengelola Student Examination Document, yaitu dokumen resmi hasil dan catatan ujian siswa. Guru dan admin membuat atau memperbarui dokumen ini per siswa. Fitur ini menyediakan bukti resmi pencapaian ujian siswa.',
       category: 'assessment',
       description: 'Student Evaluation Document records.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/studentSeds',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/studentSeds',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentSeds',
+          module: 'studentSeds',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'spr-sed',
       crud: [],
@@ -1591,9 +2760,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'completion-certificate',
       title: 'Completion Certificates',
+      userNote: 'Modul penerbitan sertifikat penyelesaian (completion certificate), misalnya penanda bahwa siswa telah menyelesaikan suatu program atau jenjang. Admin membuat dan mengelola penerbitan sertifikat ini untuk siswa yang memenuhi syarat. Sertifikat menjadi bukti resmi penyelesaian yang dapat diserahkan kepada siswa atau orang tua.',
       category: 'operations',
       description: 'Certificate generation on course completion.',
-      apiRoute: 'POST — /v1/completionCertificates',
+      apiRoute: 'POST — /api/v1/completionCertificates',
+      spec: {
+        api: {
+          basePath: '/api/v1/completionCertificates',
+          module: 'completionCertificates',
+          endpoints: [
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'certificates',
       crud: [
@@ -1605,9 +2784,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'graduation-schedule',
       title: 'Graduation Schedule',
+      userNote: 'Modul penjadwalan kelulusan yang mengatur tanggal wisuda serta tanggal pencetakan dan penyerahan transkrip. Admin mengatur jadwal ini per program dan per tahun ajaran. Fitur ini membantu sekolah merencanakan rangkaian acara kelulusan dan penerbitan dokumen transkrip.',
       category: 'operations',
       description: 'Graduation event scheduling tied to certificates.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/graduationSchedules',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/graduationSchedules',
+      spec: {
+        api: {
+          basePath: '/api/v1/graduationSchedules',
+          module: 'graduationSchedules',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'certificates',
       crud: [],
@@ -1617,9 +2809,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-certificates',
       title: 'Student Certificates',
+      userNote: 'Modul yang mengelola sertifikat milik siswa, termasuk penerbitan sertifikat massal (sync), sertifikat custom, dan custom secara borongan. Admin dapat menerbitkan sertifikat untuk banyak siswa sekaligus atau membuat sertifikat khusus. Siswa kemudian melihat sertifikat yang telah diterbitkan untuk dirinya.',
       category: 'operations',
       description: 'Certificate issuance records per student.',
-      apiRoute: 'GET, POST×3, DELETE — /v1/studentCertificates',
+      apiRoute: 'GET, POST×3, DELETE — /api/v1/studentCertificates',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentCertificates',
+          module: 'studentCertificates',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'certificates',
       crud: [
@@ -1632,9 +2836,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'threshold-config',
       title: 'Threshold Config',
+      userNote: 'Threshold Config mengatur konfigurasi batas nilai untuk tiap mata pelajaran pada tahun tertentu. Admin mengaitkan batas nilai dengan mata pelajaran agar kategori capaian siswa sesuai standar. Fitur ini memastikan penentuan predikat nilai konsisten di seluruh sekolah.',
       category: 'assessment',
       description: 'Configuration layer for pass/grade thresholds.',
-      apiRoute: 'GET, PATCH, POST — /v1/thresholdConfig',
+      apiRoute: 'GET, PATCH, POST — /api/v1/thresholdConfig',
+      spec: {
+        api: {
+          basePath: '/api/v1/thresholdConfig',
+          module: 'thresholdConfig',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'thresholds',
       crud: [],
@@ -1644,9 +2860,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'merit-report',
       title: 'Merit Report',
+      userNote: 'Merit Report mengelola laporan kehormatan atau penghargaan siswa di jenjang secondary, seperti predikat merit berdasarkan capaian dan perilaku. Admin mengatur pengaturan dan tanggal cetak laporan merit per sekolah dan semester. Fitur ini menghasilkan laporan penghargaan bagi siswa berprestasi.',
       category: 'assessment',
       description: 'Merit-based report settings and output.',
-      apiRoute: 'GET×2, PUT — /v1/meritReports',
+      apiRoute: 'GET×2, PUT — /api/v1/meritReports',
+      spec: {
+        api: {
+          basePath: '/api/v1/meritReports',
+          module: 'meritReports',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'reports',
       crud: [],
@@ -1656,9 +2883,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-exam-type',
       title: 'SVE Exam Type',
+      userNote: 'SVE Exam Type mengelola data jenis ujian SVE, termasuk jadwal, sesi, dan komponen ujian. Admin membuat, menggandakan, dan mengatur jenis ujian secara massal, serta mengekspor daftarnya ke PDF atau CSV. Fitur ini menjadi acuan penyelenggaraan ujian di sekolah.',
       category: 'assessment',
       description: 'Exam type definitions with extensive read endpoints.',
-      apiRoute: 'GET×8, POST×4, PUT — /v1/sveExamTypes',
+      apiRoute: 'GET×8, POST×4, PUT — /api/v1/sveExamTypes',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveExamTypes',
+          module: 'sveExamTypes',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1669,20 +2908,93 @@ export const skillTreeData: SkillTreeData = {
       id: 'sve-exam-timetable-session',
       title: 'SVE Timetable Session',
       category: 'assessment',
-      description: 'Sessions within the SVE exam timetable.',
-      apiRoute: 'GET, POST×2 — /v1/sveExamTimetableSession',
+      description:
+        'Slot waktu ujian SVE: membagi hari ujian menjadi beberapa sesi (S1, S2, S3, ...) dengan jam mulai dan selesai, per tingkat/level.',
+      userNote:
+        'SVE Timetable Session dipakai admin untuk membagi hari ujian menjadi beberapa sesi waktu (S1, S2, S3, dan seterusnya), masing-masing dengan jam mulai dan jam selesai, untuk tiap tingkat kelas. Dibuat lewat tombol "Add Note & Set Session" pada layar SVE Timetable, tab "Set Session": sebuah tabel dengan tingkat sebagai baris dan sesi sebagai kolom, di mana admin menambah tingkat dan sesi lalu mengisi jamnya. Saat jam mulai sebuah sesi diubah, jam selesai sesi sebelumnya otomatis disesuaikan satu menit sebelumnya, dan begitu disimpan sesi lama yang tidak lagi dipakai akan terhapus.',
+      apiRoute: 'GET, POST×2 — /api/v1/sveExamTimetableSession',
       level: 2,
       parentId: 'sve-timetable',
-      crud: [],
-      relatesTo: ['sve-timetable'],
-      tags: [],
+      crud: [
+        { id: 'sve-session-read', label: 'Lihat daftar sesi waktu per jenis ujian', type: 'read' },
+        { id: 'sve-session-create', label: 'Tambah sesi waktu baru untuk satu jenis ujian', type: 'create' },
+        { id: 'sve-session-update', label: 'Ubah jam mulai/selesai sesi', type: 'update' },
+        { id: 'sve-session-delete', label: 'Hapus sesi dari jadwal', type: 'delete' },
+      ],
+      relatesTo: ['sve-timetable', 'sve-deadline'],
+      tags: ['sesi ujian', 'jadwal'],
+      spec: {
+        screens: [
+          {
+            portal: 'admin',
+            path: '/sve-exam-timetable → "Add Note & Set Session" → tab "Set Session"',
+            note: 'Tabel Level (baris) × Session (kolom); tombol Add Level dan Add Session',
+          },
+        ],
+        api: {
+          basePath: '/api/v1/sveExamTimetableSession',
+          module: 'sve-exam-timetable-session',
+          endpoints: [
+            {
+              method: 'GET',
+              path: '/',
+              summary: 'Daftar sesi, filter per jenis ujian / program / tahun ajaran',
+              fields: ['masterSveExamTypeId', 'masterProgrammeId', 'academicYearId', 'pageSize'],
+              auth: 'SVE_SESSION_TIMETABLE — READ',
+            },
+            {
+              method: 'POST',
+              path: '/',
+              summary: 'Tambah satu sesi',
+              fields: ['name', 'number', 'group', 'timeStart', 'timeEnd'],
+              auth: 'SVE_SESSION_TIMETABLE — CREATE',
+            },
+            {
+              method: 'POST',
+              path: '/bulk',
+              summary: 'Simpan banyak sesi sekaligus untuk satu jenis ujian',
+              fields: ['masterProgrammeId', 'masterSveExamTypeId', 'academicYearId', 'sveExamTimetableSessions[]'],
+              auth: 'SVE_SESSION_TIMETABLE — CREATE',
+            },
+          ],
+        },
+        requiredFields: [
+          { name: 'name', type: 'teks', note: 'Nama sesi, mis. "S1"' },
+          { name: 'timeStart', type: 'jam', note: 'Jam mulai sesi (wajib)' },
+          { name: 'number', type: 'angka', note: 'Urutan sesi, default 1' },
+          { name: 'group', type: 'angka', note: 'Kelompok sesi, default 1' },
+          { name: 'masterSveExamTypeId', type: 'relasi', note: 'Jenis ujian SVE pemilik sesi' },
+          { name: 'masterLevelId', type: 'relasi', note: 'Tingkat/level kelas' },
+          { name: 'masterProgrammeId', type: 'relasi', note: 'Program studi' },
+          { name: 'academicYearId', type: 'relasi', note: 'Tahun ajaran' },
+        ],
+        notes: [
+          'Satu baris = satu sesi untuk satu tingkat pada satu jenis ujian dan tahun ajaran.',
+          'Saat menyimpan, sesi tanpa id dianggap baru, sesi ber-id diubah, dan sesi lama yang tidak dikirim akan dihapus.',
+          'Di layar, mengubah jam mulai sebuah sesi otomatis menetapkan jam selesai sesi sebelumnya = jam mulai minus 1 menit.',
+          'Level dipakai ulang di semua sesi — semua sesi pada satu jenis ujian berbagi daftar tingkat yang sama.',
+        ],
+      },
     },
     {
       id: 'sve-deadline',
       title: 'SVE Deadlines',
+      userNote: 'SVE Deadlines mengatur tenggat waktu tiap tahapan SVE, seperti permintaan cetak, unggah dokumen, penugasan, dan jadwal ujian. Admin menetapkan tanggal tenggat dan dapat mengunci proses agar tidak ada perubahan setelahnya. Fitur ini menjaga pelaksanaan ujian berjalan tepat waktu.',
       category: 'assessment',
       description: 'Deadline management for the SVE cycle.',
-      apiRoute: 'GET×2, POST, PUT×2, DELETE — /v1/sveDeadlines',
+      apiRoute: 'GET×2, POST, PUT×2, DELETE — /api/v1/sveDeadlines',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveDeadlines',
+          module: 'sveDeadlines',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1692,9 +3004,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-document',
       title: 'SVE Documents',
+      userNote: 'SVE Documents mengelola dokumen ujian SVE, seperti naskah soal dan berkas pendukung, beserta riwayat perubahannya. Admin dan guru mengunggah, memperbarui, dan menghapus dokumen sesuai kebutuhan. Fitur ini memastikan berkas ujian terlacak dan tersimpan dengan rapi.',
       category: 'assessment',
       description: 'Exam document management with history.',
-      apiRoute: 'GET, POST, PUT, DELETE — /v1/sveDocuments',
+      apiRoute: 'GET, POST, PUT, DELETE — /api/v1/sveDocuments',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveDocuments',
+          module: 'sveDocuments',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1704,9 +3029,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-cover-page',
       title: 'SVE Cover Page',
+      userNote: 'SVE Cover Page mengelola halaman sampul berkas ujian SVE untuk tiap program dan tahun ajaran. Admin membuat sampul secara perorangan maupun massal, serta menyalin sampul dari periode sebelumnya. Fitur ini memastikan setiap berkas ujian memiliki sampul yang sesuai.',
       category: 'assessment',
       description: 'Cover page generation for exam papers.',
-      apiRoute: 'GET×3, POST×3, PUT, DELETE — /v1/sveCoverPages',
+      apiRoute: 'GET×3, POST×3, PUT, DELETE — /api/v1/sveCoverPages',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveCoverPages',
+          module: 'sveCoverPages',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1716,9 +3054,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-cover-template',
       title: 'SVE Cover Template',
+      userNote: 'SVE Cover Template mengelola templat halaman sampul ujian SVE yang dipakai berulang. Admin menyimpan, memperbarui, dan menyinkronkan templat agar sampul terbentuk otomatis. Fitur ini menghemat waktu penyiapan berkas ujian dengan format yang seragam.',
       category: 'assessment',
       description: 'Reusable cover templates.',
-      apiRoute: 'GET×3, POST×4, PUT, DELETE — /v1/sveCoverTemplates',
+      apiRoute: 'GET×3, POST×4, PUT, DELETE — /api/v1/sveCoverTemplates',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveCoverTemplates',
+          module: 'sveCoverTemplates',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1728,9 +3079,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-printing-request',
       title: 'SVE Printing Request',
+      userNote: 'SVE Printing Request mengelola permintaan cetak berkas ujian, termasuk jumlah lembar, jumlah amplop, dan jenis kertas tambahan. Admin membuat permintaan cetak, memperbarui detailnya, serta memantau status pengiriman. Fitur ini memastikan kebutuhan cetak ujian terpenuhi dan terdokumentasi.',
       category: 'assessment',
       description: 'Print/duplicate paper requests with additional paper types.',
-      apiRoute: 'GET×2, POST, PUT×2 — /v1/svePrintingRequests',
+      apiRoute: 'GET×2, POST, PUT×2 — /api/v1/svePrintingRequests',
+      spec: {
+        api: {
+          basePath: '/api/v1/svePrintingRequests',
+          module: 'svePrintingRequests',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve-printing',
       crud: [
@@ -1742,9 +3105,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-dispatches-box',
       title: 'SVE Dispatches Box',
+      userNote: 'SVE Dispatches Box mengelola kotak pengiriman berkas ujian berdasarkan sekolah dan jenis ujian. Admin membuat kotak, menetapkan berkas ke dalamnya, dan menandai pengiriman. Fitur ini membantu distribusi berkas ujian ke tiap sekolah secara terorganisir.',
       category: 'assessment',
       description: 'Physical dispatch boxes for exam materials.',
-      apiRoute: 'GET×2, POST, PUT×2, DELETE — /v1/sveDispatchesBoxes',
+      apiRoute: 'GET×2, POST, PUT×2, DELETE — /api/v1/sveDispatchesBoxes',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveDispatchesBoxes',
+          module: 'sveDispatchesBoxes',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1754,9 +3130,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'sve-item-analysis-answers',
       title: 'SVE Item Analysis Answers',
+      userNote: 'Fitur ini mencatat kunci jawaban untuk setiap soal pada ujian SVE, lengkap dengan tipe soal dan bobot nilainya, dan bisa diisi satu per satu atau diimpor sekaligus dari file. Dari data itu sistem menghitung statistik tingkat kesulitan dan daya beda tiap soal, lalu memberi label Easy, Average, Difficult sampai Invalid. Guru memasukkan kunci pada halaman per ujian, sedangkan Principal dan Head of Department membaca analisisnya pada laporan item analysis per sekolah, campus, atau kelas.',
       category: 'assessment',
       description: 'Question-level answer analysis for item stats.',
-      apiRoute: 'GET×3, POST×2, PUT, DELETE — /v1/sveItemAnalysisAnswers',
+      apiRoute: 'GET×3, POST×2, PUT, DELETE — /api/v1/sveItemAnalysisAnswers',
+      spec: {
+        api: {
+          basePath: '/api/v1/sveItemAnalysisAnswers',
+          module: 'sveItemAnalysisAnswers',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve-item-analysis',
       crud: [],
@@ -1766,9 +3155,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'master-sve-component',
       title: 'SVE Master Components',
+      userNote: 'Fitur ini menyimpan daftar master komponen yang menjadi penyusun sebuah kertas atau ujian SVE, misalnya komponen per mata pelajaran beserta kode dan relasinya ke silabus. Admin memakainya untuk mendirikan komponen baku sebelum ujian SVE disusun, dan komponen inilah yang kemudian dipakai saat membuat ujian per mata pelajaran, tahun akademik, dan level. Admin dapat menambah, mengubah, menghapus, serta memuat banyak komponen sekaligus.',
       category: 'assessment',
       description: 'Master exam component definitions.',
-      apiRoute: 'GET×2, POST×2, PUT, DELETE — /v1/masterSveComponents',
+      apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/masterSveComponents',
+      spec: {
+        api: {
+          basePath: '/api/v1/masterSveComponents',
+          module: 'masterSveComponents',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'sve',
       crud: [],
@@ -1778,9 +3180,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'billing',
       title: 'Billings',
+      userNote: 'Billings adalah modul inti pencatatan tagihan siswa yang menghubungkan siswa dengan produk atau harga tertentu. Admin keuangan dapat membuat tagihan individual maupun massal, memperbaruinya, dan melihat riwayat tagihan per siswa. Sistem juga secara otomatis memeriksa tagihan yang jatuh tempo dan menandai statusnya.',
       category: 'finance',
       description: 'Full billing engine with 11 GET endpoints + snapshots.',
-      apiRoute: 'GET×11, POST×2, PUT, DELETE — /v1/billings',
+      apiRoute: 'GET×11, POST×2, PUT, DELETE — /api/v1/billings',
+      spec: {
+        api: {
+          basePath: '/api/v1/billings',
+          module: 'billings',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'finance',
       crud: [
@@ -1795,9 +3210,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'payment',
       title: 'Payments',
+      userNote: 'Payments adalah modul yang mencatat dan memverifikasi pembayaran dari orang tua atau siswa terhadap invoice dan tagihan. Admin keuangan dapat mencatat pembayaran masuk, meninjau daftar pembayaran, dan menyetujui atau membatalkan sebuah pembayaran sesuai kewenangan. Setiap pembayaran dihubungkan ke invoice terkait agar pencatatan tetap rapi.',
       category: 'finance',
       description: 'Payment records and confirmations.',
-      apiRoute: 'GET×2, POST×2, PUT×2 — /v1/payments',
+      apiRoute: 'GET×2, POST×2, PUT×2 — /api/v1/payments',
+      spec: {
+        api: {
+          basePath: '/api/v1/payments',
+          module: 'payments',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'invoices',
       crud: [
@@ -1809,9 +3236,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'installment-request',
       title: 'Installment Requests',
+      userNote: 'Installment Requests adalah fitur pengajuan cicilan pembayaran biaya sekolah. Orang tua atau siswa dapat mengajukan permohonan agar tagihan dibayar secara bertahap, dan admin keuangan dapat melihat daftar pengajuan serta menyetujui atau mengubahnya. Fitur ini memberi keleluasaan bagi keluarga yang membutuhkan keringanan waktu pembayaran.',
       category: 'finance',
       description: 'Parent requests to split invoices into installments.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/installmentRequests',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/installmentRequests',
+      spec: {
+        api: {
+          basePath: '/api/v1/installmentRequests',
+          module: 'installmentRequests',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'invoices',
       crud: [],
@@ -1821,9 +3261,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'refund-request',
       title: 'Refund Requests',
+      userNote: 'Refund Requests adalah fitur untuk mengajukan dan memproses pengembalian dana kepada orang tua atau siswa. Admin keuangan dapat membuat permintaan refund, menelusuri daftarnya, dan memproses persetujuan melalui beberapa tahap persetujuan sebelum dana dikembalikan. Fitur ini membantu memastikan setiap pengembalian dana tercatat dan disetujui dengan benar.',
       category: 'finance',
       description: 'Refund workflow from paid invoices.',
-      apiRoute: 'GET×2, POST, PUT — /v1/refundRequests',
+      apiRoute: 'GET×2, POST, PUT — /api/v1/refundRequests',
+      spec: {
+        api: {
+          basePath: '/api/v1/refundRequests',
+          module: 'refundRequests',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'invoices',
       crud: [],
@@ -1833,9 +3285,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'wallet-transaction-history',
       title: 'Wallet Transactions',
+      userNote: 'Wallet Transactions adalah fitur riwayat transaksi dompet yang mencatat setiap pergerakan dana pada wallet siswa. Admin keuangan dapat melihat daftar seluruh transaksi dan menelusuri detail setiap transaksi, seperti deposit, pembayaran, atau pengembalian dana. Fitur ini berfungsi sebagai jejak audit penggunaan dana di dompet.',
       category: 'finance',
       description: 'Full wallet transaction ledger.',
-      apiRoute: 'GET×2 — /v1/walletTransactionHistories',
+      apiRoute: 'GET×2 — /api/v1/walletTransactionHistories',
+      spec: {
+        api: {
+          basePath: '/api/v1/walletTransactionHistories',
+          module: 'walletTransactionHistories',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'wallets',
       crud: [],
@@ -1845,9 +3307,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'security-deposit',
       title: 'Security Deposit',
+      userNote: 'Security Deposit adalah fitur pengelolaan uang jaminan (deposit) yang disetorkan siswa ke sekolah. Admin keuangan dapat melihat saldo deposit tiap siswa, mengecek tagihan yang belum dibayar, dan memproses pengembalian deposit tersebut. Fitur ini memastikan dana jaminan tercatat dengan jelas sebelum dikembalikan kepada siswa.',
       category: 'finance',
       description: 'Deposit collection with transaction history.',
-      apiRoute: 'GET×2, POST — /v1/securityDeposits',
+      apiRoute: 'GET×2, POST — /api/v1/securityDeposits',
+      spec: {
+        api: {
+          basePath: '/api/v1/securityDeposits',
+          module: 'securityDeposits',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'finance',
       crud: [],
@@ -1857,9 +3330,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'promo',
       title: 'Promos',
+      userNote: 'Promos adalah fitur pengelolaan program promosi potongan biaya yang ditawarkan sekolah. Admin keuangan dapat membuat, mengubah, dan menghapus data promo yang akan memengaruhi besaran tagihan siswa yang memenuhi syarat. Promo membantu sekolah menjalankan penawaran khusus untuk periode atau kondisi tertentu.',
       category: 'finance',
       description: 'Promotional pricing codes.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/promos',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/promos',
+      spec: {
+        api: {
+          basePath: '/api/v1/promos',
+          module: 'promos',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [],
@@ -1869,9 +3355,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'one-time-product',
       title: 'One-Time Products',
+      userNote: 'One-Time Products adalah fitur untuk mengelola produk biaya yang bersifat sekali bayar dan tidak berulang. Admin keuangan dapat menambah, mengubah, dan menghapus produk jenis ini yang nantinya digunakan dalam penyusunan tagihan siswa. Produk sekali bayar cocok untuk biaya seperti seragam, buku, atau kegiatan khusus.',
       category: 'finance',
       description: 'Non-recurring fee products.',
-      apiRoute: 'GET×2, POST, PATCH, DELETE — /v1/oneTimeProducts',
+      apiRoute: 'GET×2, POST, PATCH, DELETE — /api/v1/oneTimeProducts',
+      spec: {
+        api: {
+          basePath: '/api/v1/oneTimeProducts',
+          module: 'oneTimeProducts',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [],
@@ -1881,9 +3380,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'semestral-price',
       title: 'Semestral Price',
+      userNote: 'Semestral Price adalah fitur pengelolaan harga produk yang dihitung per semester. Admin keuangan dapat membuat, melihat, mengubah, dan menghapus harga semestral yang menjadi dasar penagihan biaya berulang setiap semester. Fitur ini membantu sekolah menetapkan biaya yang berlaku selama satu periode semester.',
       category: 'finance',
       description: 'Per-semester pricing of products.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/semestralPrices',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/semestralPrices',
+      spec: {
+        api: {
+          basePath: '/api/v1/semestralPrices',
+          module: 'semestralPrices',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [],
@@ -1893,9 +3405,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'price-modification',
       title: 'Price Modification',
+      userNote: 'Price Modification adalah fitur penyesuaian harga produk biaya sekolah. Admin keuangan dapat membuat penyesuaian harga, memperbaruinya secara massal, serta melihat daftar dan detail penyesuaian yang pernah dilakukan. Fitur ini memungkinkan sekolah mengoreksi atau menyesuaikan harga tanpa mengubah produk aslinya.',
       category: 'finance',
       description: 'Price overrides and adjustments.',
-      apiRoute: 'GET×2, POST×2, PUT, DELETE — /v1/priceModifications',
+      apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/priceModifications',
+      spec: {
+        api: {
+          basePath: '/api/v1/priceModifications',
+          module: 'priceModifications',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [],
@@ -1905,9 +3430,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'master-product',
       title: 'Master Products',
+      userNote: 'Master Products adalah fitur katalog induk produk biaya yang menjadi acuan utama penetapan harga sekolah. Admin keuangan dapat membuat, mengubah, dan menghapus produk induk, termasuk membuatnya secara massal maupun langsung dari katalog, dengan kaitan ke tahun ajaran dan harga tertentu. Produk induk ini kemudian dipakai saat menyusun tagihan siswa.',
       category: 'finance',
       description: 'Canonical product catalog.',
-      apiRoute: 'GET×3, POST×3, PUT, DELETE — /v1/masterProducts',
+      apiRoute: 'GET×3, POST×3, PUT, DELETE — /api/v1/masterProducts',
+      spec: {
+        api: {
+          basePath: '/api/v1/masterProducts',
+          module: 'masterProducts',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [
@@ -1920,9 +3458,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'product-category',
       title: 'Product Categories',
+      userNote: 'Product Categories adalah fitur untuk mengelompokkan produk biaya sekolah ke dalam kategori. Admin keuangan dapat menambah, mengubah, dan menghapus kategori agar katalog produk lebih rapi dan mudah dicari. Pengelompokan ini memudahkan pengelolaan berbagai jenis biaya yang dimiliki sekolah.',
       category: 'finance',
       description: 'Category tree for products.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/productCategory',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/productCategory',
+      spec: {
+        api: {
+          basePath: '/api/v1/productCategory',
+          module: 'productCategory',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'products',
       crud: [],
@@ -1932,9 +3483,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'appraisal',
       title: 'Staff Appraisal',
+      userNote: 'Modul penilaian kinerja staf pengajar (staff appraisal) yang mencakup penilaian per dimensi, ringkasan nilai, dan penguncian penilaian. Kepala sekolah atau penilai dapat memberi skor, melihat rincian nilai, mengubah status penilaian, serta mengekspor ringkasan penilaian. Fitur ini dipakai untuk evaluasi dan pemantauan kualitas guru secara terukur.',
       category: 'operations',
       description: 'Staff appraisal with locks, reviews and summary.',
-      apiRoute: 'GET×10+, PUT×2 — /v1/appraisal',
+      apiRoute: 'GET×10+, PUT×2 — /api/v1/appraisal',
+      spec: {
+        api: {
+          basePath: '/api/v1/appraisal',
+          module: 'appraisal',
+          endpoints: [
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [
@@ -1947,9 +3508,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'petals',
       title: 'Petals Observations',
+      userNote: 'Modul observasi PETALS yang dipakai untuk mencatat dan menilai observasi pembelajaran guru di kelas. Penilai dapat melihat daftar guru, membuat observasi, mengisi skor butir penilaian, serta melihat dan mengekspor laporan observasi. Fitur ini membantu sekolah memantau kualitas pengajaran melalui pengamatan terstruktur.',
       category: 'operations',
       description: 'Classroom observations and teacher appraisals (petals workflow).',
-      apiRoute: 'GET×9, POST, PUT×2, DELETE — /v1/petals',
+      apiRoute: 'GET×9, POST, PUT×2, DELETE — /api/v1/petals',
+      spec: {
+        api: {
+          basePath: '/api/v1/petals',
+          module: 'petals',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [],
@@ -1959,9 +3533,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'position',
       title: 'Positions',
+      userNote: 'Fitur Positions mengelola daftar jabatan yang ada di sekolah, misalnya jabatan struktural maupun fungsional, beserta singkatan dan cakupan sekolahnya. Admin dapat menambah, melihat, mengubah, dan menghapus data jabatan serta mengaitkannya dengan organisasi dan peran pengguna. Jabatan ini juga dipakai sebagai penanda tangan pada dokumen sertifikat.',
       category: 'identity',
       description: 'Job position definitions.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/positions',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/positions',
+      spec: {
+        api: {
+          basePath: '/api/v1/positions',
+          module: 'positions',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [],
@@ -1971,9 +3558,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'employee-position',
       title: 'Employee Positions',
+      userNote: 'Fitur Employee Positions menghubungkan pegawai dengan jabatan yang diembannya, dengan menyertakan kampus, cabang, program, mata pelajaran, dan tahun ajaran terkait. Admin dapat menetapkan maupun menyalin penugasan jabatan dari satu tahun ajaran ke tahun ajaran berikutnya. Setiap pegawai dapat melihat daftar jabatannya sendiri.',
       category: 'identity',
       description: 'Position assignments per employee.',
-      apiRoute: 'GET×3, POST×3, PUT, DELETE — /v1/employeePositions',
+      apiRoute: 'GET×3, POST×3, PUT, DELETE — /api/v1/employeePositions',
+      spec: {
+        api: {
+          basePath: '/api/v1/employeePositions',
+          module: 'employeePositions',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [],
@@ -1983,9 +3583,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'head-department',
       title: 'Head of Department',
+      userNote: 'Fitur Head of Department menunjuk guru yang menjabat sebagai kepala departemen akademik untuk program tertentu pada suatu tahun ajaran. Admin menetapkan penunjukan ini agar struktur kepemimpinan akademik tiap departemen tercatat rapi. Fitur ini juga mendukung penunjukan sekaligus untuk banyak guru.',
       category: 'identity',
       description: 'HOD assignments linking teachers to departments.',
-      apiRoute: 'GET×3, POST×3, PUT, DELETE — /v1/headDepartments',
+      apiRoute: 'GET×3, POST×3, PUT, DELETE — /api/v1/headDepartments',
+      spec: {
+        api: {
+          basePath: '/api/v1/headDepartments',
+          module: 'headDepartments',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [],
@@ -1995,9 +3608,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'board-teacher',
       title: 'Board Teacher',
+      userNote: 'Fitur Board Teacher mencatat guru yang duduk dalam dewan/mata pelajaran (board) tertentu untuk sebuah program pada tahun ajaran tertentu. Admin dapat menetapkan, mengubah, dan menghapus penetapan ini melalui pengaturan board assignment. Fitur ini juga mendukung penetapan sekaligus untuk banyak guru.',
       category: 'identity',
       description: 'Teacher registrations on examination boards.',
-      apiRoute: 'GET×2, POST×2, PUT, DELETE — /v1/boardTeachers',
+      apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/boardTeachers',
+      spec: {
+        api: {
+          basePath: '/api/v1/boardTeachers',
+          module: 'boardTeachers',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'employees',
       crud: [],
@@ -2007,9 +3633,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'daily-attendance',
       title: 'Daily Attendance',
+      userNote: 'Modul rekap kehadiran harian yang merangkum kehadiran siswa per kelas per hari. Sistem menghitung apakah kehadiran harian sudah lengkap dengan membandingkan jumlah yang tercatat terhadap jumlah siswa aktif. Admin membaca rekap ini, sedangkan guru mengisi kehadiran harian di kelas. Data ini menjadi dasar laporan kehadiran.',
       category: 'operations',
       description: 'Daily attendance granular records (differs from aggregate).',
-      apiRoute: 'GET×3, POST×2, PATCH, DELETE — /v1/dailyAttendances',
+      apiRoute: 'GET×3, POST×2, PATCH, DELETE — /api/v1/dailyAttendances',
+      spec: {
+        api: {
+          basePath: '/api/v1/dailyAttendances',
+          module: 'dailyAttendances',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PATCH', path: '/:id', summary: 'Patch' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'attendance',
       crud: [
@@ -2022,9 +3661,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-attendance-report',
       title: 'Attendance Reports',
+      userNote: 'Modul laporan kehadiran siswa yang menyajikan rekap dan analisis kehadiran untuk keperluan pemantauan. Admin dapat melihat laporan kehadiran per siswa maupun per kelas berdasarkan periode tertentu. Fitur ini membantu sekolah mengidentifikasi pola ketidakhadiran dan mengambil tindakan yang diperlukan.',
       category: 'operations',
       description: 'Per-student attendance report generation.',
-      apiRoute: 'GET×3, POST×2, PUT, DELETE — /v1/studentAttendanceReports',
+      apiRoute: 'GET×3, POST×2, PUT, DELETE — /api/v1/studentAttendanceReports',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentAttendanceReports',
+          module: 'studentAttendanceReports',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'attendance',
       crud: [],
@@ -2034,9 +3686,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'late-time-setting',
       title: 'Late Time Settings',
+      userNote: 'Modul pengaturan batas waktu keterlambatan yang menentukan jam acuan kapan siswa dianggap terlambat. Admin mengatur batas waktu ini per program dan per tingkat. Pengaturan ini kemudian dipakai sistem kehadiran untuk menandai siswa yang datang terlambat.',
       category: 'operations',
       description: 'Config thresholds for late arrivals.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/lateTimeSettings',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/lateTimeSettings',
+      spec: {
+        api: {
+          basePath: '/api/v1/lateTimeSettings',
+          module: 'lateTimeSettings',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'attendance',
       crud: [],
@@ -2046,9 +3710,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'height-weight',
       title: 'Height & Weight',
+      userNote: 'Fitur Height & Weight mencatat tinggi dan berat badan siswa untuk setiap term dalam laporan siswa. Guru atau staf dapat memasukkan data ini secara individual maupun sekaligus untuk banyak siswa. Data tersebut dipakai sebagai bagian dari pelaporan perkembangan fisik siswa.',
       category: 'identity',
       description: 'Health metrics recorded per student.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/heightWeights',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/heightWeights',
+      spec: {
+        api: {
+          basePath: '/api/v1/heightWeights',
+          module: 'heightWeights',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'students',
       crud: [],
@@ -2058,9 +3734,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'conduct-api',
       title: 'Conduct API',
+      userNote: 'Fitur ini menyimpan catatan conduct atau perilaku siswa per student report dan per term, termasuk nilai conduct yang diberikan guru pembina kelas. Guru dapat membuat, memperbarui, dan memuat banyak catatan conduct sekaligus untuk siswa di kelasnya, dan catatan ini menjadi bahan laporan perilaku siswa. Data conduct ini juga dipakai sebagai dasar pada proses verifikasi conduct tingkat secondary.',
       category: 'student-life',
       description: 'Conduct record entries and verification.',
-      apiRoute: 'GET×2, POST×2, PUT — /v1/conducts',
+      apiRoute: 'GET×2, POST×2, PUT — /api/v1/conducts',
+      spec: {
+        api: {
+          basePath: '/api/v1/conducts',
+          module: 'conducts',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'conduct-badges',
       crud: [
@@ -2072,9 +3760,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'remark-api',
       title: 'Remarks API',
+      userNote: 'Modul catatan (remark) yang dipakai untuk menambahkan dan mengelola catatan terkait siswa. Guru atau admin dapat membuat, melihat, memperbarui, dan menghapus catatan siswa sesuai kebutuhan. Catatan ini melengkapi informasi perilaku dan perkembangan siswa dalam sistem.',
       category: 'student-life',
       description: 'Teacher remarks on students.',
-      apiRoute: 'GET×2, POST×3, PUT — /v1/remarks',
+      apiRoute: 'GET×2, POST×3, PUT — /api/v1/remarks',
+      spec: {
+        api: {
+          basePath: '/api/v1/remarks',
+          module: 'remarks',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'conduct-badges',
       crud: [
@@ -2086,9 +3786,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'secondary-verify-conduct',
       title: 'Secondary Verify Conduct',
+      userNote: 'Fitur ini adalah langkah verifikasi conduct khusus siswa secondary, dipakai admin sekolah untuk meninjau dan menetapkan grade conduct siswa per kelas, tahun akademik, dan term. Admin melihat satu grid berisi nama siswa, kelas, nilai conduct yang diusulkan, lalu mengisi keputusan verifikasi dengan grade A sampai D atau mengosongkannya. Hasil verifikasi ini menggantikan atau menyetujui catatan conduct dari guru pembina kelas sebelum masuk ke laporan siswa.',
       category: 'operations',
       description: 'Verification step for secondary conduct records.',
-      apiRoute: 'GET, PUT — /v1/secondaryVerifyConducts',
+      apiRoute: 'GET, PUT — /api/v1/secondaryVerifyConducts',
+      spec: {
+        api: {
+          basePath: '/api/v1/secondaryVerifyConducts',
+          module: 'secondaryVerifyConducts',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'secondary-discipline',
       crud: [
@@ -2100,9 +3811,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'cca-registration',
       title: 'CCA Registration',
+      userNote: 'Modul pendaftaran kegiatan CCA (Co-Curricular Activity) oleh siswa, mencakup pengajuan, persetujuan, penolakan, penarikan, dan undangan keanggotaan. Sistem menerapkan aturan seperti periode pendaftaran, batas jumlah CCA, kuota total, dan kuota berdasarkan jenis kelamin. Admin menyetujui atau menolak pendaftaran, sementara siswa mendaftar pada CCA yang diinginkan.',
       category: 'student-life',
       description: 'Student CCA signup/registration flow.',
-      apiRoute: 'GET×3, POST×6, PUT — /v1/ccaRegistrations',
+      apiRoute: 'GET×3, POST×6, PUT — /api/v1/ccaRegistrations',
+      spec: {
+        api: {
+          basePath: '/api/v1/ccaRegistrations',
+          module: 'ccaRegistrations',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'cca',
       crud: [
@@ -2114,9 +3837,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'cca-registration-window',
       title: 'CCA Registration Window',
+      userNote: 'Modul pengaturan jendela waktu (window) pendaftaran CCA yang menentukan kapan siswa boleh mendaftar. Admin mengatur periode pembukaan dan penutupan pendaftaran untuk setiap kegiatan. Pengaturan ini memastikan pendaftaran hanya dapat dilakukan sesuai jadwal yang ditetapkan sekolah.',
       category: 'student-life',
       description: 'Open/close windows for CCA signups.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/ccaRegistrationWindows',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/ccaRegistrationWindows',
+      spec: {
+        api: {
+          basePath: '/api/v1/ccaRegistrationWindows',
+          module: 'ccaRegistrationWindows',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'cca',
       crud: [],
@@ -2126,9 +3862,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'cca-year',
       title: 'CCA Year',
+      userNote: 'Modul yang mengelola penawaran CCA per tahun ajaran, mencakup CCA, kampus, tingkat, kuota total, kuota laki-laki dan perempuan, deskripsi, serta gambar. Admin mengatur penawaran mana yang dibuka pada tahun ajaran tertentu dan berapa daya tampungnya. Fitur ini menjadi dasar bagi proses pendaftaran dan penempatan siswa ke CCA.',
       category: 'student-life',
       description: 'CCA offering per academic year with coordinators.',
-      apiRoute: 'GET×2, POST×2, PUT, DELETE — /v1/ccaYears',
+      apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/ccaYears',
+      spec: {
+        api: {
+          basePath: '/api/v1/ccaYears',
+          module: 'ccaYears',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'cca',
       crud: [],
@@ -2138,9 +3887,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-cca-grade',
       title: 'Student CCA Grade',
+      userNote: 'Modul penilaian siswa untuk kegiatan CCA, yang mencatat dan menyimpan nilai CCA setiap siswa. Guru atau admin dapat memberi nilai, memperbarui banyak nilai sekaligus, dan menyinkronkan nilai CCA secara keseluruhan. Nilai ini menjadi bagian dari laporan perkembangan siswa pada kegiatan ekstrakurikuler.',
       category: 'student-life',
       description: 'Grades for CCA participation.',
-      apiRoute: 'GET×3, POST×2, PUT, DELETE — /v1/studentCcaGrades',
+      apiRoute: 'GET×3, POST×2, PUT, DELETE — /api/v1/studentCcaGrades',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentCcaGrades',
+          module: 'studentCcaGrades',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'cca',
       crud: [],
@@ -2150,9 +3912,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'badge',
       title: 'Badges',
+      userNote: 'Modul pengelolaan master data badge (lencana) yang dipakai sekolah sebagai bentuk penghargaan. Admin dapat membuat, melihat, mengubah, dan menghapus data badge. Badge ini nantinya diberikan kepada siswa sebagai tanda pencapaian atau perilaku baik.',
       category: 'student-life',
       description: 'Badge definitions awarded to students.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/badges',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/badges',
+      spec: {
+        api: {
+          basePath: '/api/v1/badges',
+          module: 'badges',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'conduct-badges',
       crud: [
@@ -2165,9 +3940,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'badge-type',
       title: 'Badge Types',
+      userNote: 'Modul pengelolaan jenis badge (badge type) sebagai kategori untuk mengelompokkan berbagai badge. Admin mengatur jenis-jenis badge yang tersedia di sekolah. Pengelompokan ini memudahkan pemberian dan pelaporan badge kepada siswa.',
       category: 'student-life',
       description: 'Badge category definitions.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/badgeTypes',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/badgeTypes',
+      spec: {
+        api: {
+          basePath: '/api/v1/badgeTypes',
+          module: 'badgeTypes',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'conduct-badges',
       crud: [],
@@ -2177,9 +3965,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-badge',
       title: 'Student Badges',
+      userNote: 'Modul pemberian badge kepada siswa yang mencatat badge mana yang diperoleh setiap siswa. Guru atau admin dapat memberikan dan mencatat badge siswa sesuai prestasi atau perilakunya. Data ini menjadi riwayat penghargaan yang diterima siswa selama bersekolah.',
       category: 'student-life',
       description: 'Badge awards issued to students.',
-      apiRoute: 'GET, POST×2 — /v1/studentBadges',
+      apiRoute: 'GET, POST×2 — /api/v1/studentBadges',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentBadges',
+          module: 'studentBadges',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'conduct-badges',
       crud: [
@@ -2191,9 +3990,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'medal-api',
       title: 'Medals API',
+      userNote: 'Modul pengelolaan medal (medali) sebagai bentuk penghargaan tingkat lebih tinggi bagi siswa. Admin dapat membuat, melihat, mengubah, dan menghapus data medal. Medal diberikan kepada siswa atas pencapaian tertentu, misalnya pada mata pelajaran atau prestasi khusus.',
       category: 'operations',
       description: 'Medal definitions for student awards.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/medals',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/medals',
+      spec: {
+        api: {
+          basePath: '/api/v1/medals',
+          module: 'medals',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'medals',
       crud: [],
@@ -2203,9 +4015,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'medal-type',
       title: 'Medal Types',
+      userNote: 'Modul pengelolaan jenis medal (medal type) sebagai kategori medali yang tersedia di sekolah. Admin mengatur jenis-jenis medal beserta keterangannya. Jenis ini dipakai saat memberikan medal kepada siswa agar pengelompokannya rapi.',
       category: 'operations',
       description: 'Medal category definitions.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/medalTypes',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/medalTypes',
+      spec: {
+        api: {
+          basePath: '/api/v1/medalTypes',
+          module: 'medalTypes',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'medals',
       crud: [],
@@ -2215,9 +4040,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-assignment',
       title: 'Student Assignments',
+      userNote: 'Student Assignments mengelola daftar tugas siswa beserta detail seperti judul, batas waktu, dan lampirannya. Guru membuat tugas untuk kelas atau siswa, dan siswa mengaksesnya untuk dikerjakan. Fitur ini menjadi jembatan pemberian tugas dan pemantauan penyelesaiannya.',
       category: 'assessment',
       description: 'Per-student assignment submissions and grades.',
-      apiRoute: 'GET×3, POST×2, PUT×3, DELETE×2 — /v1/studentAssignments',
+      apiRoute: 'GET×3, POST×2, PUT×3, DELETE×2 — /api/v1/studentAssignments',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentAssignments',
+          module: 'studentAssignments',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'assignments',
       crud: [
@@ -2230,9 +4068,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-lesson',
       title: 'Student Lesson Progress',
+      userNote: 'Student Lesson Progress mencatat keterkaitan siswa dengan lesson yang telah guru berikan kepadanya, termasuk siapa guru yang membuat dan memperbaruinya. Guru memakai fitur ini untuk menandai dan memperbarui progres pelajaran setiap siswa, sehingga terlihat pelajaran mana yang sudah dibuka atau diproses untuk siswa tersebut.',
       category: 'academic',
       description: 'Lesson completion/progress tracking per student.',
-      apiRoute: 'GET, POST, PUT — /v1/studentLessons',
+      apiRoute: 'GET, POST, PUT — /api/v1/studentLessons',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentLessons',
+          module: 'studentLessons',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'subjects-topics',
       crud: [],
@@ -2242,9 +4092,21 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'student-answer',
       title: 'Student Answers',
+      userNote: 'Student Answers menyimpan jawaban siswa atas soal, termasuk hasil penilaiannya. Siswa mengirim jawaban, sementara guru menilai jawaban tersebut dan memberi komentar. Fitur ini mencatat proses pengerjaan dan penilaian sekaligus.',
       category: 'assessment',
       description: 'Students answers to questions (assessments/quizzes).',
-      apiRoute: 'GET, POST, PUT×3 — /v1/studentAnswer',
+      apiRoute: 'GET, POST, PUT×3 — /api/v1/studentAnswer',
+      spec: {
+        api: {
+          basePath: '/api/v1/studentAnswer',
+          module: 'studentAnswer',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'assignments',
       crud: [],
@@ -2254,9 +4116,20 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'questions',
       title: 'Questions',
+      userNote: 'Questions mengelola bank soal yang dipakai dalam pembelajaran, mencakup soal pilihan ganda, isian, dan esai. Guru melihat dan menghapus soal yang tersimpan sesuai materi pelajaran. Fitur ini mendukung penyusunan materi dan penilaian berbasis soal.',
       category: 'assessment',
       description: 'Question bank with delete support.',
-      apiRoute: 'GET, DELETE — /v1/questions',
+      apiRoute: 'GET, DELETE — /api/v1/questions',
+      spec: {
+        api: {
+          basePath: '/api/v1/questions',
+          module: 'questions',
+          endpoints: [
+          { method: 'GET', path: '/', summary: 'List' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'assignments',
       crud: [
@@ -2269,9 +4142,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'external-integrations',
       title: 'External Service Integrations',
+      userNote: 'Modul integrasi layanan eksternal yang menghubungkan sistem dengan layanan pihak ketiga, seperti SGE Chinese dan Koobits. Sistem menghasilkan tautan masuk aman ke layanan tersebut untuk pengguna terkait. Fitur ini memudahkan siswa atau guru mengakses layanan belajar eksternal tanpa login terpisah.',
       category: 'core',
       description: 'Integrations with external services (read endpoints).',
-      apiRoute: 'GET×2 — /v1/externalServiceIntegrations',
+      apiRoute: 'GET×2 — /api/v1/externalServiceIntegrations',
+      spec: {
+        api: {
+          basePath: '/api/v1/externalServiceIntegrations',
+          module: 'externalServiceIntegrations',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-core',
       crud: [],
@@ -2281,9 +4164,19 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'mailer',
       title: 'Mailer',
+      userNote: 'Modul pengiriman email yang menangani pengiriman pesan otomatis, misalnya email tagihan (invoice) kepada penerima. Admin mengirim atau menguji pengiriman email melalui modul ini, dan sistem memproses antrean pengiriman surat. Fitur ini memastikan komunikasi resmi sekolah terkirim secara otomatis dan tercatat.',
       category: 'core',
       description: 'Email sending endpoints (notifications, documents).',
-      apiRoute: 'POST — /v1/mailers',
+      apiRoute: 'POST — /api/v1/mailers',
+      spec: {
+        api: {
+          basePath: '/api/v1/mailers',
+          module: 'mailers',
+          endpoints: [
+          { method: 'POST', path: '/', summary: 'Create' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-core',
       crud: [
@@ -2295,9 +4188,22 @@ export const skillTreeData: SkillTreeData = {
     {
       id: 'schedule',
       title: 'Schedules',
+      userNote: 'Modul pengelolaan jadwal (schedules) yang dipakai untuk mencatat dan mengatur jadwal kegiatan. Admin dan guru dapat membuat, melihat, mengubah, dan menghapus jadwal sesuai kewenangannya. Fitur ini menjadi acuan waktu bagi berbagai kegiatan di sekolah.',
       category: 'operations',
       description: 'General scheduling records.',
-      apiRoute: 'GET×2, POST, PUT, DELETE — /v1/schedules',
+      apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/schedules',
+      spec: {
+        api: {
+          basePath: '/api/v1/schedules',
+          module: 'schedules',
+          endpoints: [
+          { method: 'GET', path: '/ + /:id', summary: 'List + detail' },
+          { method: 'POST', path: '/', summary: 'Create' },
+          { method: 'PUT', path: '/:id', summary: 'Update' },
+          { method: 'DELETE', path: '/:id', summary: 'Delete' },
+          ],
+        },
+      },
       level: 2,
       parentId: 'grp-operations',
       crud: [],
@@ -2316,6 +4222,36 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['students'],
       tags: [],
       wikiFile: 'cca.md',
+      wiki: '# CCA\n\nCCA model, registration statuses and guards, quota Q4 vs section 4, coordinator cap, Q6, and transfer with no quota check.\n\nSee also:\n\n- [student-transfer.md](student-transfer.md)\n- [open-questions.md](open-questions.md)\n- [academic-structure.md](academic-structure.md)\n- [identity.md](identity.md)\n\nFrom [CCA_REMODEL.md](../CCA_REMODEL.md). Model: Cca to CcaYear to CcaRegistration. Modules: cca, cca-year, cca-year-coordinator, cca-registration, cca-registration-rules, cca-registration-window, cca-grade-setting, cca-grade-term-setting, student-cca-grade.\n\nCca carries sportType (SPORT, NON_SPORT), registrationType (OPEN, TEAM), ccaType (CCA, ECA). CcaYear is one offering per CCA plus campus plus level plus academic year. Level uniqueness is service-enforced, no DB unique. CcaYear holds quota, maleQuota, femaleQuota, masterLevelId, description, images.\n\n## Registration status\n\n| Name | Value |\n| --- | --- |\n| PENDING | 1 |\n| APPROVED | 2 |\n| REJECTED | 3 |\n| WITHDRAWN | 4 |\n| INVITED | 5 |\n| CANCELLED | 6 |\n\n## Registration guards\n\nRegistration guards on POST /v1/ccaRegistrations, in order: window, max CCAs, duplicate (reactivate WITHDRAWN to PENDING), total quota, gender quota. Failures are 400.\n\nQ4 decision (PM, recorded in that doc): when maleQuota or femaleQuota is set, total quota is ignored and only gender caps apply. Total applies only when no gender cap is set. Applied in create() and assertInviteCapacity(). Section 4 of the same doc still says total and gender caps are independent and both must pass. Flag that contradiction. This catalog follows Q4 because the PM decision section names it as resolved. See [open-questions.md](open-questions.md).\n\nINVITED counts toward quota (OCCUPYING_STATUSES = PENDING + APPROVED + INVITED). TEAM is invite-only. create() rejects self-registration for TEAM. Invite picker is not hard-filtered by campus or level (R2 decision).\n\n## Windows\n\nNo window configured: isRegistrationOpen() is true and POST /ccaRegistrations is still accepted. Student UI hides offerings unless isWindowConfigured && isRegistrationOpen. Once any window exists for a campus, registration is closed outside it. An INACTIVE window still counts as configured. Exact (campus, level) window wins over campus-wide. Window overlap and reversed range are rejected in service, not by a DB constraint. create, invite, and accept call assertWindowOpen. Approve, reject, withdraw, decline do not.\n\n## Coordinators\n\nPhase 2 text says max 2, both grade everyone, no per-programme filter. Data-model section and cca-year-coordinator notes say max 3. Flag. Do not pick a winner here. See [open-questions.md](open-questions.md).\n\n## Transfer\n\nPOST /v1/ccaRegistrations/transfer. Copies grades to the target, soft-deletes the origin registration and origin grade rows as audit, creates APPROVED on the target with transferredFromCcaYearId, one DB transaction. Transfer does not check target quota. Re-transfer can duplicate grade rows. This is not the class-year student transfer. Contrast: [student-transfer.md](student-transfer.md).\n\nGrade setting resolve: CCA-Year override, then per-CCA this academic year, then CCA default. Teacher file: `bbs/client-teacher/src/views/cca/CCADetail.jsx`.\n\nQ6 still open: per-level max-CCA cap still uses classroom-name parsing in `cca-registration-rules.service.ts`. Needed table is P1-P6, Sec 1-4, JC on master_level. Flag. See [open-questions.md](open-questions.md).\n\n`PageOptionsDto.pageSize` defaults to 5 (`api_nest/src/common/dto/page-options.dto.ts:54`), but `CcaRegistrationController.findAll` reads its query as `@Query() options: any` (controller line 45) without instantiating the DTO, so the default never applies there. Verified 2026-09-30: `GET /ccaRegistrations` with no params returned all matching rows (6 of 6) and a meta with `pageCount: null` — the list is unbounded, not page-5-capped. List views MUST still pass an explicit pageSize to bound the query; do not rely on a server default for this endpoint.\n\n## Admin routes\n\nFrom `bbs/client/src/routes.js` admin CCA nav:\n\n| Route | Notes |\n| --- | --- |\n| /cca | Master CCA. Also /cca/add, /cca/:ccaId, /cca/:ccaId/edit |\n| /cca-in-year | Offerings. Also /cca-in-year/add, /cca-in-year/:ccaInYearId, /cca-in-year/:ccaInYearId/edit |\n| /cca-in-year-assignment | Assignment. Also /cca-in-year-assignment/:ccaInYearId/assign |\n| /cca-registration-rules | Rules. Also /cca-registration-rules/add, /cca-registration-rules/:id/edit |\n| /cca-registration-windows | Windows. Also /cca-registration-windows/add, /cca-registration-windows/:id/edit |\n| /cca-registration-management | Registration management |\n| /cca-grade-settings | Grade settings. Also /cca-grade-settings/add, /cca-grade-settings/:ccaGradeSettingId |\n\n## Teacher\n\n| Route | Notes |\n| --- | --- |\n| /ccaYear | Offerings. Also /ccaYear/:ccaYearId/:academicYearId |\n| /ccaRegistrationApprovals | Approvals |\n| /ccaYearAssignment | Assignment. Also /ccaYearAssignment/:ccaYearId |\n\n## Student\n\n| Route | Notes |\n| --- | --- |\n| /ccaYear | Offerings. Also /ccaYear/:ccaYearId |\n| /cca-registration | Registration |\n\nPortals: admin (CCA, CCA-in-year, assignment, registration rules/windows/management, grade settings, invite, transfer), teacher (ccaYear, approvals, grading), student (/ccaYear, /cca-registration).\n\n[Wiki home](README.md)',
+      userNote: 'Modul master CCA (Co-Curricular Activity) yang mengelola daftar kegiatan beserta jenisnya, seperti kegiatan olahraga atau non-olahraga, serta tipe pendaftaran terbuka atau tim. Admin membuat, melihat, mengubah, dan menghapus data CCA. Data ini menjadi fondasi bagi penawaran dan pendaftaran CCA oleh siswa.',
+      spec: {
+        screens: [
+          { portal: 'admin', path: '/cca', note: 'CCA catalogue' },
+          { portal: 'admin', path: '/cca-in-year', note: 'CCAs offered this year' },
+          { portal: 'admin', path: '/cca-registration-windows', note: 'Registration windows (open/close)' },
+          { portal: 'admin', path: '/cca-registration-management', note: 'Manage registrations' },
+          { portal: 'admin', path: '/cca-grade-settings', note: 'CCA grade settings' },
+          { portal: 'student', path: '/cca-registration', note: 'Student registers for a CCA' },
+          { portal: 'student', path: '/ccaYear', note: 'Student\u2019s CCAs this year' },
+        ],
+        api: {
+          basePath: '/api/v1/cca',
+          module: 'cca',
+          endpoints: [
+            { method: 'GET', path: '/', summary: 'List CCAs' },
+            { method: 'GET', path: '/:id', summary: 'CCA detail with registered students' },
+            { method: 'POST', path: '/', summary: 'Create CCA', fields: ['name', 'category', 'capacity'] },
+            { method: 'PUT', path: '/:id', summary: 'Update CCA' },
+            { method: 'DELETE', path: '/:id', summary: 'Delete CCA' },
+          ],
+        },
+        requiredFields: [
+          { name: 'name', type: 'string' },
+          { name: 'category', type: 'enum', note: 'sports / arts / clubs / uniformed groups' },
+          { name: 'capacity', type: 'number' },
+        ],
+        notes: ['Registration is gated by a registration window; CCA grades feed reports alongside academic grades.'],
+      },
     },
     {
       id: 'leaps',
@@ -2328,6 +4264,18 @@ export const skillTreeData: SkillTreeData = {
       relatesTo: ['cca'],
       tags: [],
       wikiFile: 'leaps.md',
+      wiki: '# LEAPS\n\nLEAPS types and events. Teacher form-class records events. No invented scores.\n\nSee also:\n\n- [certificates.md](certificates.md)\n- [primary-reports.md](primary-reports.md)\n- [identity.md](identity.md)\n- [academic-structure.md](academic-structure.md)\n- [report-types.md](report-types.md)\n\n## Admin routes\n\n| Nav group | Nav | Path |\n| --- | --- | --- |\n| Non Education Master Data | LEAPS Type | `/leaps-type` |\n| Academic Year Data | LEAPS Event | `/leaps-event`, `/add`, `/:leapsEventId`, `/:leapsEventId/edit` |\n\n## Teacher routes\n\nForm-class adjacent nav: `/leaps`, `/leaps/add`, `/leaps/:leapsEventId`, `/leaps/:leapsEventId/edit`. Subject `LEAPS_EVENT`.\n\n## Modules\n\nModules: leaps-*.\n\nA name with `*` is a prefix. Related: leaps-type, leaps-event, student-leaps-remark.\n\nAPI: `/v1/leapsEvents`.\n\nNo extra numeric formulas for LEAPS in the scattered notes. Do not invent LEAPS scores.\n\nLEAPS report type (`ReportTypeEnum.LEAPS`) is `createStudentLeapsReport` (`distinctOn leapsEventId`, newest remark wins). Details: [report-types.md](report-types.md).\n\nPortal: admin configures types and events. Teacher form-class records LEAPS. Student does not own this write path.\n\n[Wiki home](README.md)',
+      userNote: 'Modul LEAPS yang mengelola jenis (type) dan kegiatan (event) LEAPS bagi siswa. Admin mengatur jenis dan kegiatan LEAPS, sedangkan guru wali kelas mencatat kegiatan LEAPS siswa. Fitur ini dipakai untuk mencatat capaian dan pengalaman siswa dalam kerangka LEAPS.',
+      spec: {
+        screens: [
+          { portal: 'teacher', path: '/leaps', note: 'Award + view LEAPS points' },
+        ],
+        requiredFields: [
+          { name: 'studentId', type: 'relation → Students' },
+          { name: 'points', type: 'number' },
+          { name: 'category', type: 'enum', note: 'LEAPS dimension (Leadership, Enrichment, etc.)' },
+        ],
+      },
     },
   ],
 };

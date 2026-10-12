@@ -1,4 +1,6 @@
-import type { CrudOperation, SkillNode } from '../types';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import type { CrudOperation, Endpoint, Screen, SkillNode } from '../types';
 
 interface Props {
   node: SkillNode;
@@ -7,11 +9,11 @@ interface Props {
 }
 
 const CRUD_TYPE_LABEL: Record<CrudOperation['type'], string> = {
-  create: 'CREATE',
-  read: 'READ',
-  update: 'UPDATE',
-  delete: 'DELETE',
-  action: 'ACTION',
+  create: 'Tambah',
+  read: 'Lihat',
+  update: 'Ubah',
+  delete: 'Hapus',
+  action: 'Aksi',
 };
 
 const CRUD_TYPE_COLOR: Record<CrudOperation['type'], string> = {
@@ -22,55 +24,321 @@ const CRUD_TYPE_COLOR: Record<CrudOperation['type'], string> = {
   action: '#a855f7',
 };
 
+/** Plain-language verb shown in the "what you can do here" list. */
+const CRUD_VERB: Record<CrudOperation['type'], string> = {
+  create: 'Menambah data baru',
+  read: 'Melihat data yang sudah ada',
+  update: 'Mengubah data yang sudah ada',
+  delete: 'Menghapus data',
+  action: 'Menjalankan aksi khusus',
+};
+
+const METHOD_COLOR: Record<Endpoint['method'], string> = {
+  GET: '#3b82f6',
+  POST: '#22c55e',
+  PUT: '#eab308',
+  PATCH: '#f97316',
+  DELETE: '#ef4444',
+};
+
+const PORTAL_LABEL: Record<Screen['portal'], string> = {
+  admin: 'Admin',
+  teacher: 'Guru',
+  student: 'Siswa',
+  shared: 'Semua portal',
+  api: 'Sistem',
+};
+
+/** Who the feature is for, in business terms. */
+const PORTAL_AUDIENCE: Record<Screen['portal'], string> = {
+  admin: 'staf tata usaha / admin sekolah',
+  teacher: 'guru',
+  student: 'siswa',
+  shared: 'admin dan guru',
+  api: 'sistem (otomatis)',
+};
+
+/** One plain sentence describing what the whole feature lets a user do. */
+function userSummary(node: SkillNode): string {
+  const verbs = new Set(node.crud.map((c) => c.type));
+  const parts: string[] = [];
+  if (verbs.has('create')) parts.push('menambahkan');
+  if (verbs.has('read')) parts.push('melihat');
+  if (verbs.has('update')) parts.push('mengubah');
+  if (verbs.has('delete')) parts.push('menghapus');
+  if (parts.length === 0) return node.description;
+  const joined =
+    parts.length === 1
+      ? parts[0]
+      : parts.slice(0, -1).join(', ') + ' dan ' + parts[parts.length - 1];
+  return `Lewat fitur ini Anda bisa ${joined} data ${node.title.toLowerCase()}.`;
+}
+
+/** Deduced "who uses it" line from the recorded screens. */
+function audienceLine(node: SkillNode): string | null {
+  const portals = new Set((node.spec?.screens ?? []).map((s) => s.portal));
+  if (portals.size === 0) return null;
+  const labels = [...portals].map((p) => PORTAL_AUDIENCE[p]);
+  const unique = [...new Set(labels)];
+  if (unique.length === 1) return `Dipakai oleh ${unique[0]}.`;
+  return `Dipakai oleh ${unique.slice(0, -1).join(', ')} dan ${unique[unique.length - 1]}.`;
+}
+
+/** Split ``code`` spans out of a line so they render as <code>. */
+function renderInline(text: string): ReactNode[] {
+  return text.split(/(`[^`]+`)/g).map((part, i) =>
+    part.startsWith('`') && part.endsWith('`') && part.length > 2 ? (
+      <code key={i} className="wiki-code">
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
+/**
+ * Minimal markdown renderer for the team-wiki excerpts we embed: `##`/`###`
+ * headings, `-` bullets, and inline ``code``. Anything else is a paragraph.
+ */
+function WikiMarkdown({ text }: { text: string }) {
+  const blocks: ReactNode[] = [];
+  let bullets: string[] = [];
+
+  const flushBullets = () => {
+    if (bullets.length === 0) return;
+    blocks.push(
+      <ul key={`ul-${blocks.length}`} className="wiki-list">
+        {bullets.map((b, i) => (
+          <li key={i}>{renderInline(b)}</li>
+        ))}
+      </ul>,
+    );
+    bullets = [];
+  };
+
+  for (const raw of text.split('\n')) {
+    const line = raw.trimEnd();
+    if (line.startsWith('- ')) {
+      bullets.push(line.slice(2));
+      continue;
+    }
+    flushBullets();
+    if (line.trim() === '') continue;
+    if (line.startsWith('### ')) {
+      blocks.push(
+        <h5 key={blocks.length} className="wiki-h">
+          {renderInline(line.slice(4))}
+        </h5>,
+      );
+    } else if (line.startsWith('## ')) {
+      blocks.push(
+        <h4 key={blocks.length} className="wiki-h">
+          {renderInline(line.slice(3))}
+        </h4>,
+      );
+    } else {
+      blocks.push(
+        <p key={blocks.length} className="wiki-p">
+          {renderInline(line)}
+        </p>,
+      );
+    }
+  }
+  flushBullets();
+  return <div className="wiki">{blocks}</div>;
+}
+
 export function DetailPanel({ node, nodesById, onSelect }: Props) {
-  const children = [...(nodesById.values() as Iterable<SkillNode>)]
-    .filter((n) => n.parentId === node.id);
+  const [showTech, setShowTech] = useState(false);
+
+  const children = [...(nodesById.values() as Iterable<SkillNode>)].filter(
+    (n) => n.parentId === node.id,
+  );
   const parents =
-    node.parentId && nodesById.has(node.parentId)
-      ? [nodesById.get(node.parentId)!]
-      : [];
+    node.parentId && nodesById.has(node.parentId) ? [nodesById.get(node.parentId)!] : [];
   const related = node.relatesTo
     .map((id) => nodesById.get(id))
     .filter((n): n is SkillNode => !!n);
+
+  const spec = node.spec;
+  const screens = spec?.screens ?? [];
+  const api = spec?.api;
+  const requiredFields = spec?.requiredFields ?? [];
+  const notes = spec?.notes ?? [];
+  const wiki = node.wiki ?? spec?.wiki;
+  const userNote = node.userNote;
+
+  // Collapse duplicate CRUD verbs: "menambah" once, not five times.
+  const crudByType = new Map<CrudOperation['type'], CrudOperation[]>();
+  for (const c of node.crud) {
+    const list = crudByType.get(c.type) ?? [];
+    list.push(c);
+    crudByType.set(c.type, list);
+  }
 
   return (
     <aside className="detail">
       <hgroup>
         <h2>{node.title}</h2>
-        <p className="detail-id">#{node.id} · Level {node.level}</p>
+        <p className="detail-id">{node.category}</p>
       </hgroup>
 
       <section>
-        <h3>Description</h3>
+        <h3>Ringkasan</h3>
         <p>{node.description}</p>
-        {node.apiRoute && <p className="detail-src">API (api_nest): {node.apiRoute}</p>}
-        {node.wikiFile && <p className="detail-src">Source: bbs-wiki/{node.wikiFile}</p>}
+        {userNote && <div className="user-note">{userNote}</div>}
+        <p className="detail-plain">{userSummary(node)}</p>
+        {audienceLine(node) && <p className="detail-audience">{audienceLine(node)}</p>}
         {node.tags.length > 0 && (
-          <ul className="taglist">{node.tags.map((t) => <li key={t}>{t}</li>)}</ul>
+          <ul className="taglist">
+            {node.tags.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
         )}
       </section>
 
       <section>
-        <h3>CRUD / Operations ({node.crud.length})</h3>
+        <h3>Yang bisa Anda lakukan</h3>
         {node.crud.length === 0 ? (
-          <p className="muted">No operations recorded for this node yet.</p>
+          <p className="muted">Fitur ini belum punya daftar aksi yang tercatat.</p>
         ) : (
           <ul className="crudlist">
-            {node.crud.map((c) => (
-              <li key={c.id}>
-                <span className="crud-badge" style={{ background: CRUD_TYPE_COLOR[c.type] }}>
-                  {CRUD_TYPE_LABEL[c.type]}
+            {[...crudByType.entries()].map(([type, ops]) => (
+              <li key={type}>
+                <span className="crud-badge" style={{ background: CRUD_TYPE_COLOR[type] }}>
+                  {CRUD_TYPE_LABEL[type]}
                 </span>
-                {c.label}
+                <span className="crud-plain">
+                  {ops.length > 1 ? `${CRUD_VERB[type]} (${ops.length} aksi)` : CRUD_VERB[type]}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
+      {screens.length > 0 && (
+        <section>
+          <h3>Di mana mencarinya</h3>
+          <ul className="screenlist">
+            {screens.map((s) => (
+              <li key={`${s.portal}-${s.path}`}>
+                <span className={`screen-badge portal-${s.portal}`}>
+                  {PORTAL_LABEL[s.portal]}
+                </span>
+                <span className="screen-where">
+                  {s.note ?? `Halaman ${s.path.replace(/^\//, '').replace(/[/:]/g, ' ')}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {(wiki || node.wikiFile || api || requiredFields.length > 0 || node.apiRoute) && (
+        <section className="tech-section">
+          <button
+            className="tech-toggle"
+            aria-expanded={showTech}
+            onClick={() => setShowTech((v) => !v)}
+          >
+            <span className="tech-caret">{showTech ? '▾' : '▸'}</span>
+            Detail teknis (untuk developer)
+          </button>
+
+          {showTech && (
+            <div className="tech-body">
+              {wiki && (
+                <div className="tech-block">
+                  <h4>Referensi dokumentasi</h4>
+                  <WikiMarkdown text={wiki} />
+                </div>
+              )}
+              {!wiki && node.wikiFile && (
+                <p className="detail-src">Dokumentasi: bbs-wiki/{node.wikiFile}</p>
+              )}
+
+              {api && (
+                <div className="tech-block">
+                  <h4>Alamat API</h4>
+                  <p className="api-base">
+                    <code>{api.basePath}</code>
+                    <span className="api-module">modul: {api.module}</span>
+                  </p>
+                  <ul className="endpointlist">
+                    {api.endpoints.map((e, i) => (
+                      <li key={`${e.method}-${e.path}-${i}`} className="endpoint">
+                        <div className="endpoint-head">
+                          <span
+                            className="method-badge"
+                            style={{ background: METHOD_COLOR[e.method] }}
+                          >
+                            {e.method}
+                          </span>
+                          <code className="route">{e.path}</code>
+                          {e.summary && <span className="endpoint-summary">{e.summary}</span>}
+                        </div>
+                        {e.fields && e.fields.length > 0 && (
+                          <div className="endpoint-fields">
+                            <span className="fields-label">body:</span>
+                            {e.fields.map((f) => (
+                              <code key={f} className="field-chip">
+                                {f}
+                              </code>
+                            ))}
+                          </div>
+                        )}
+                        {e.auth && <div className="endpoint-auth">requires: {e.auth}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {!api && node.apiRoute && (
+                <div className="tech-block">
+                  <h4>Alamat API</h4>
+                  <p className="api-base">
+                    <code>{node.apiRoute}</code>
+                  </p>
+                </div>
+              )}
+
+              {requiredFields.length > 0 && (
+                <div className="tech-block">
+                  <h4>Kolom yang wajib diisi</h4>
+                  <ul className="fieldlist">
+                    {requiredFields.map((f) => (
+                      <li key={f.name}>
+                        <code className="field-name">{f.name}</code>
+                        {f.type && <span className="field-type">{f.type}</span>}
+                        {f.note && <span className="field-note">{f.note}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {notes.length > 0 && (
+        <section>
+          <h3>Catatan penting</h3>
+          <ul className="notelist">
+            {notes.map((n, i) => (
+              <li key={i}>{n}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {parents.length > 0 && (
         <section>
-          <h3>Parent</h3>
+          <h3>Bagian dari</h3>
           <button className="node-link" onClick={() => onSelect(parents[0].id)}>
             {parents[0].title}
           </button>
@@ -78,9 +346,9 @@ export function DetailPanel({ node, nodesById, onSelect }: Props) {
       )}
 
       <section>
-        <h3>Children ({children.length})</h3>
+        <h3>Isi di dalamnya ({children.length})</h3>
         {children.length === 0 ? (
-          <p className="muted">Leaf node — no children.</p>
+          <p className="muted">Tidak ada sub-fitur — ini fitur paling kecil.</p>
         ) : (
           <ul className="linklist">
             {children.map((c) => (
@@ -95,9 +363,9 @@ export function DetailPanel({ node, nodesById, onSelect }: Props) {
       </section>
 
       <section>
-        <h3>Relationships ({related.length})</h3>
+        <h3>Terkait dengan ({related.length})</h3>
         {related.length === 0 ? (
-          <p className="muted">No cross-module relationships recorded.</p>
+          <p className="muted">Tidak ada keterkaitan dengan fitur lain.</p>
         ) : (
           <ul className="linklist">
             {related.map((r) => (
