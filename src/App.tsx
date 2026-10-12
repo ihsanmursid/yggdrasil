@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { SkillNode } from './types';
-import { skillTreeData } from './data/skillTreeData';
-import { SkillTreeCanvas } from './components/SkillTreeCanvas';
+import { yggdrasilData } from './data/yggdrasilData';
+import { YggdrasilCanvas } from './components/YggdrasilCanvas';
 import { DetailPanel } from './components/DetailPanel';
 import { Sidebar } from './components/Sidebar';
 import './styles.css';
@@ -15,13 +15,13 @@ export default function App() {
 
   const nodesById = useMemo(() => {
     const m = new Map<string, SkillNode>();
-    skillTreeData.nodes.forEach((n) => m.set(n.id, n));
+    yggdrasilData.nodes.forEach((n) => m.set(n.id, n));
     return m;
   }, []);
 
   const childrenOf = useMemo(() => {
     const m = new Map<string, string[]>();
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.nodes.forEach((n) => {
       if (!n.parentId) return;
       if (!m.has(n.parentId)) m.set(n.parentId, []);
       m.get(n.parentId)!.push(n.id);
@@ -36,7 +36,7 @@ export default function App() {
   // previous focus had opened.
   const revealedIds = useMemo(() => {
     const out = new Set<string>([ROOT_ID]);
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.nodes.forEach((n) => {
       if (n.parentId === ROOT_ID) out.add(n.id);
     });
     let cur = nodesById.get(selectedId);
@@ -52,7 +52,7 @@ export default function App() {
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();
     return new Set(
-      skillTreeData.nodes
+      yggdrasilData.nodes
         .filter((n) => (category === 'all' ? true : n.category === category))
         .filter((n) =>
           q
@@ -71,7 +71,7 @@ export default function App() {
     const q = query.trim().length > 0 || category !== 'all';
     if (!q) return revealedIds;
     const out = new Set(matchIds);
-    let cur = skillTreeData.nodes.filter((n) => matchIds.has(n.id));
+    let cur = yggdrasilData.nodes.filter((n) => matchIds.has(n.id));
     while (cur.length) {
       const next: SkillNode[] = [];
       cur.forEach((n) => {
@@ -92,13 +92,13 @@ export default function App() {
 
   const selected = nodesById.get(selectedId) ?? nodesById.get(ROOT_ID)!;
   const visibleCount = visibleIds.size;
-  const totalCount = skillTreeData.nodes.length;
+  const totalCount = yggdrasilData.nodes.length;
 
   return (
     <div className="app">
       <header className="topbar">
         <div>
-          <h1>Smartbag Skill Tree</h1>
+          <h1>Smartbag Yggdrasil</h1>
           <p>
             Diablo-style map of every Smartbag feature. Start at the root, click
             a branch to expand it, click a node for CRUD detail.
@@ -112,7 +112,7 @@ export default function App() {
           />
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="all">All categories</option>
-            {skillTreeData.categories.map((c) => (
+            {yggdrasilData.categories.map((c) => (
               <option key={c.id} value={c.id}>{c.label}</option>
             ))}
           </select>
@@ -137,7 +137,7 @@ export default function App() {
           nodeCount={visibleCount}
           totalCount={totalCount}
         />
-        <SkillTreeCanvas
+        <YggdrasilCanvas
           selectedId={selected.id}
           visibleIds={visibleIds}
           onSelect={handleSelect}

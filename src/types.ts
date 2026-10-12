@@ -76,7 +76,7 @@ export interface SkillNode {
   spec?: FeatureSpec;
 }
 
-export interface SkillTreeData {
+export interface YggdrasilData {
   categories: { id: string; label: string; color: string }[];
   nodes: SkillNode[];
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { skillTreeData } from '../data/skillTreeData';
+import { yggdrasilData } from '../data/yggdrasilData';
 
 interface Props {
   selectedId: string;
@@ -14,7 +14,7 @@ export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCoun
 
   const childrenOf = useMemo(() => {
     const m = new Map<string, string[]>();
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.nodes.forEach((n) => {
       if (!n.parentId) return;
       if (!m.has(n.parentId)) m.set(n.parentId, []);
       m.get(n.parentId)!.push(n.id);
@@ -22,13 +22,13 @@ export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCoun
     return m;
   }, []);
 
-  const nodesById = useMemo(() => new Map(skillTreeData.nodes.map((n) => [n.id, n])), []);
+  const nodesById = useMemo(() => new Map(yggdrasilData.nodes.map((n) => [n.id, n])), []);
 
   // Level-1 branches grouped by category, in category order.
   const branchesByCat = useMemo(() => {
     const m = new Map<string, string[]>();
-    skillTreeData.categories.forEach((c) => m.set(c.id, []));
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.categories.forEach((c) => m.set(c.id, []));
+    yggdrasilData.nodes.forEach((n) => {
       if (n.level === 1 && m.has(n.category)) m.get(n.category)!.push(n.id);
     });
     return m;
@@ -36,7 +36,7 @@ export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCoun
 
   const colors = useMemo(() => {
     const m = new Map<string, string>();
-    skillTreeData.categories.forEach((c) => m.set(c.id, c.color));
+    yggdrasilData.categories.forEach((c) => m.set(c.id, c.color));
     return m;
   }, []);
 
@@ -48,7 +48,7 @@ export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCoun
       </div>
 
       <ul className="catlist">
-        {skillTreeData.categories.map((cat) => {
+        {yggdrasilData.categories.map((cat) => {
           const branches = branchesByCat.get(cat.id) ?? [];
           if (branches.length === 0) return null;
           const open = openCat === cat.id;

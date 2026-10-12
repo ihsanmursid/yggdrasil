@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { skillTreeData } from '../data/skillTreeData';
+import { yggdrasilData } from '../data/yggdrasilData';
 
 interface Props {
   selectedId: string;
@@ -26,7 +26,7 @@ const PULL_MS = 620;           // must match the .canvas-inner transition
 
 type Placed = { x: number; y: number; angle: number; depth: number; w: number; h: number };
 
-export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
+export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 400, y: 340 });
   const [zoom, setZoom] = useState(0.5);
@@ -35,15 +35,15 @@ export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
 
   const catColor = useMemo(() => {
     const m = new Map<string, string>();
-    skillTreeData.categories.forEach((c) => m.set(c.id, c.color));
+    yggdrasilData.categories.forEach((c) => m.set(c.id, c.color));
     return m;
   }, []);
 
-  const nodesById = useMemo(() => new Map(skillTreeData.nodes.map((n) => [n.id, n])), []);
+  const nodesById = useMemo(() => new Map(yggdrasilData.nodes.map((n) => [n.id, n])), []);
 
   const childrenOf = useMemo(() => {
     const m = new Map<string, string[]>();
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.nodes.forEach((n) => {
       if (!n.parentId) return;
       if (!m.has(n.parentId)) m.set(n.parentId, []);
       m.get(n.parentId)!.push(n.id);
@@ -61,7 +61,7 @@ export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
       memo.set(id, s);
       return s;
     };
-    skillTreeData.nodes.forEach((n) => calc(n.id));
+    yggdrasilData.nodes.forEach((n) => calc(n.id));
     return memo;
   }, [childrenOf]);
 
@@ -136,7 +136,7 @@ export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
       });
     };
     // Orphans (no parent chain) — park on the outer ring.
-    skillTreeData.nodes.forEach((n) => {
+    yggdrasilData.nodes.forEach((n) => {
       if (!p.has(n.id)) {
         const depth = 2;
         p.set(n.id, { x: radiusFor(depth), y: 0, angle: 0, depth, w: widthFor(depth), h: heightFor(depth) });
@@ -273,7 +273,7 @@ export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
   }, []);
 
   const chain = useMemo(() => [...ancestors(selectedId), selectedId], [ancestors, selectedId]);
-  const nodes = skillTreeData.nodes.filter((n) => visibleIds.has(n.id));
+  const nodes = yggdrasilData.nodes.filter((n) => visibleIds.has(n.id));
   // Overview = nothing but the root is selected. In that state the connector
   // lines are just noise, so they get blurred out.
   const isOverview = selectedId === 'smartbag';
@@ -416,7 +416,7 @@ export function SkillTreeCanvas({ selectedId, visibleIds, onSelect }: Props) {
       <div className="canvas-ui minimap">
         <div className="minimap-title">World tree</div>
         <svg width="150" height="150">
-          {skillTreeData.nodes.map((n) => {
+          {yggdrasilData.nodes.map((n) => {
             const p = pos.get(n.id);
             if (!p) return null;
             const m = toMini(p.x, p.y);

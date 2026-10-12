@@ -32,7 +32,7 @@ npm run preview  # serve the production build
 
 ## Data model
 
-All feature data lives in `src/data/skillTreeData.ts`:
+All feature data lives in `src/data/yggdrasilData.ts`:
 
 - `categories` — id, label and colour for each branch.
 - `nodes` — one entry per feature: `id`, `title`, `category`, `description`,

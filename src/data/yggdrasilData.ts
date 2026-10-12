@@ -1,6 +1,6 @@
-import type { SkillTreeData } from '../types';
+import type { YggdrasilData } from '../types';
 
-export const skillTreeData: SkillTreeData = {
+export const yggdrasilData: YggdrasilData = {
   categories: [
     { id: 'core', label: 'Core / Platform', color: '#f59e0b' },
     { id: 'portals', label: 'Portals (per role)', color: '#64748b' },
