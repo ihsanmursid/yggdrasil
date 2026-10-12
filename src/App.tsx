@@ -100,8 +100,9 @@ export default function App() {
         <div>
           <h1>Smartbag Yggdrasil</h1>
           <p>
-            Diablo-style map of every Smartbag feature. Start at the root, click
-            a branch to expand it, click a node for CRUD detail.
+            An interactive map of every Smartbag feature, inspired by RPG skill
+            trees. Start at the root, click a branch to expand it, click a node
+            for detail.
           </p>
         </div>
         <div className="controls">

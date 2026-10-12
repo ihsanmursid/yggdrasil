@@ -1,8 +1,9 @@
 # Yggdrasil
 
-An interactive, Diablo-style skill tree that visualises every feature of the
-**Smartbag** school-management platform — the NestJS API (`api_nest`), the React
-portals (`bbs`), and the wiki docs (`bbs-wiki`) — as one navigable tree.
+An interactive feature map, inspired by RPG skill trees, that visualises every
+feature of the **Smartbag** school-management platform — the NestJS API
+(`api_nest`), the React portals (`bbs`), and the wiki docs (`bbs-wiki`) — as one
+navigable tree.
 
 Click any node to see its detail: description, CRUD/operations, parent and
 children, and cross-module relationships. Perfect for giving non-technical
