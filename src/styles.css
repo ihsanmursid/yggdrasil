@@ -13,6 +13,8 @@ body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0b0e17
 .layout { display: grid; grid-template-columns: 260px 1fr 360px; min-height: calc(100vh - 73px); }
 .canvas { position: relative; overflow: hidden; background: radial-gradient(circle at 30% 20%, #141b2e, #0b0e17); cursor: grab; }
 .canvas:active { cursor: grabbing; }
+.canvas.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.canvas.dragging * { cursor: grabbing; }
 .canvas-inner { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .canvas-inner.anim { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .edges { position: absolute; overflow: visible; }

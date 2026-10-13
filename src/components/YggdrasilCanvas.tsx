@@ -31,7 +31,30 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
   const [pan, setPan] = useState({ x: 400, y: 340 });
   const [zoom, setZoom] = useState(0.5);
   const [animating, setAnimating] = useState(false);
-  const drag = useRef<{ sx: number; sy: number; px: number; py: number; moved: boolean } | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  // Live mirrors of pan/zoom for event handlers that must stay subscribed once
+  // (the wheel listener, the pointer handlers) without seeing stale values.
+  const panRef = useRef(pan);
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  // A drag is only "captured" (pointer-captured) once it passes the click
+  // threshold, so a plain click still reaches the node button underneath.
+  const drag = useRef<{
+    id: number;
+    sx: number;
+    sy: number;
+    px: number;
+    py: number;
+    moved: boolean;
+    active: boolean;
+  } | null>(null);
 
   const catColor = useMemo(() => {
     const m = new Map<string, string>();
@@ -238,11 +261,15 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
       const px = w / 2 - target.x * z;
       const py = h / 2 - target.y * z;
       if (instant) {
+        panRef.current = { x: px, y: py };
+        zoomRef.current = z;
         setPan({ x: px, y: py });
         setZoom(z);
         return;
       }
       setAnimating(true);
+      panRef.current = { x: px, y: py };
+      zoomRef.current = z;
       setPan({ x: px, y: py });
       setZoom(z);
       window.setTimeout(() => setAnimating(false), PULL_MS + 30);
@@ -260,13 +287,35 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cursor-anchored zoom: the point under the mouse stays fixed on screen.
+  // Registered once; reads pan/zoom through refs so it never sees stale state.
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       setAnimating(false);
-      setZoom((z) => Math.min(2.2, Math.max(0.25, z - Math.sign(e.deltaY) * 0.09)));
+
+      const rect = el.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const z0 = zoomRef.current;
+      const p0 = panRef.current;
+      // World point under the cursor before zooming.
+      const wx = (mx - p0.x) / z0;
+      const wy = (my - p0.y) / z0;
+
+      const step = e.deltaMode === 1 ? 0.25 : Math.min(0.18, Math.abs(e.deltaY) / 600);
+      const z1 = Math.min(2.2, Math.max(0.25, e.deltaY < 0 ? z0 + step : z0 - step));
+      if (z1 === z0) return;
+
+      // Keep (wx, wy) under the cursor at the new zoom.
+      const p1 = { x: mx - wx * z1, y: my - wy * z1 };
+      zoomRef.current = z1;
+      panRef.current = p1;
+      setZoom(z1);
+      setPan(p1);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
@@ -306,21 +355,60 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
   return (
     <div
       ref={wrapRef}
-      className="canvas ygg"
-      onMouseDown={(e) => {
+      className={`canvas ygg${dragging ? ' dragging' : ''}`}
+      onPointerDown={(e) => {
         if ((e.target as HTMLElement).closest('.canvas-ui')) return;
-        drag.current = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y, moved: false };
-      }}
-      onMouseMove={(e) => {
-        if (!drag.current) return;
-        const dx = e.clientX - drag.current.sx;
-        const dy = e.clientY - drag.current.sy;
-        if (Math.abs(dx) + Math.abs(dy) > 4) drag.current.moved = true;
+        // Left button only (or touch). Absorb a grab that happens mid-animation
+        // so the captured visual state matches where the content actually is.
         setAnimating(false);
-        setPan({ x: drag.current.px + dx, y: drag.current.py + dy });
+        drag.current = {
+          id: e.pointerId,
+          sx: e.clientX,
+          sy: e.clientY,
+          px: panRef.current.x,
+          py: panRef.current.y,
+          moved: false,
+          active: false,
+        };
       }}
-      onMouseUp={() => (drag.current = null)}
-      onMouseLeave={() => (drag.current = null)}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d || e.pointerId !== d.id) return;
+        const dx = e.clientX - d.sx;
+        const dy = e.clientY - d.sy;
+        if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true;
+        // Capture the pointer once the drag passes the threshold, so the pan
+        // keeps following even when the cursor leaves the canvas.
+        if (!d.active && d.moved) {
+          d.active = true;
+          setDragging(true);
+          e.currentTarget?.setPointerCapture(e.pointerId);
+        }
+        if (!d.active) return;
+        panRef.current = { x: d.px + dx, y: d.py + dy };
+        setPan(panRef.current);
+      }}
+      onPointerUp={(e) => {
+        const d = drag.current;
+        if (!d || e.pointerId !== d.id) return;
+        if (d.active) {
+          setDragging(false);
+          try {
+            e.currentTarget?.releasePointerCapture(e.pointerId);
+          } catch {
+            /* capture already released */
+          }
+        }
+        drag.current = null;
+      }}
+      onPointerCancel={(e) => {
+        const d = drag.current;
+        if (!d || e.pointerId !== d.id) return;
+        if (d.active) setDragging(false);
+        drag.current = null;
+      }}
+      onDragStart={(e) => e.preventDefault()}
+      style={{ touchAction: 'none' }}
     >
       <div
         className={`canvas-inner${animating ? ' anim' : ''}`}
@@ -405,10 +493,10 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
         })}
       </div>
 
-      {/* Zoom controls */}
+      {/* Zoom controls — keep the live refs in sync so wheel/pan never go stale */}
       <div className="canvas-ui zoomctl">
-        <button onClick={() => setZoom((z) => Math.min(2.2, z + 0.15))}>+</button>
-        <button onClick={() => setZoom((z) => Math.max(0.25, z - 0.15))}>−</button>
+        <button onClick={() => { const z = Math.min(2.2, zoomRef.current + 0.15); zoomRef.current = z; setZoom(z); }}>+</button>
+        <button onClick={() => { const z = Math.max(0.25, zoomRef.current - 0.15); zoomRef.current = z; setZoom(z); }}>−</button>
         <button className="wide" onClick={() => onSelect('smartbag')}>Overview</button>
       </div>
 
