@@ -85,16 +85,45 @@ function audienceLine(node: SkillNode): string | null {
 }
 
 /** Split ``code`` spans out of a line so they render as <code>. */
+// The wiki markdown links to sibling files (e.g. `file-sharing.md`,
+// `../docs/x.md`). We bundle those files under `public/wiki/`, so every
+// `.md` reference resolves to the raw copy in the repo.
+const WIKI_RAW_BASE = 'https://raw.githubusercontent.com/ihsanmursid/yggdrasil/main/public/wiki/';
+
+function wikiHref(target: string): string {
+  // Keep absolute URLs untouched; map any *.md to the bundled wiki file.
+  if (/^https?:\/\//.test(target)) return target;
+  const file = target.split(/[\\/]/).pop() ?? target;
+  return WIKI_RAW_BASE + file;
+}
+
 function renderInline(text: string): ReactNode[] {
-  return text.split(/(`[^`]+`)/g).map((part, i) =>
-    part.startsWith('`') && part.endsWith('`') && part.length > 2 ? (
-      <code key={i} className="wiki-code">
-        {part.slice(1, -1)}
-      </code>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  );
+  // Split on inline code and markdown links `[label](target)`.
+  const parts = text.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+      return (
+        <code key={i} className="wiki-code">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      return (
+        <a
+          key={i}
+          className="wiki-link"
+          href={wikiHref(link[2])}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {link[1]}
+        </a>
+      );
+    }
+    return part ? <span key={i}>{part}</span> : null;
+  });
 }
 
 /**
