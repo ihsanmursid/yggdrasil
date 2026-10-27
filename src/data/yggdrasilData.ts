@@ -10,7 +10,7 @@ export const yggdrasilData: YggdrasilData = {
     { id: 'assessment', label: 'Assessment & Reports', color: '#ec4899' },
     { id: 'finance', label: 'Finance & Billing', color: '#eab308' },
     { id: 'operations', label: 'Operations', color: '#14b8a6' },
-    { id: 'student-life', label: 'Student Life', color: '#f97316' },
+    { id: 'co-curricular', label: 'Co-Curricular & Conduct', color: '#f97316' },
   ],
   nodes: [
     {
@@ -32,8 +32,8 @@ export const yggdrasilData: YggdrasilData = {
     { id: 'grp-academic', title: 'Academic Structure', category: 'academic', description: 'How the curriculum is organised: subjects → topics → lessons, lesson plans, grade levels and teaching groups.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-assessment'], tags: ['group'] },
     { id: 'grp-assessment', title: 'Assessment & Reports', category: 'assessment', description: 'Grading and reporting: gradebooks, assignments, SVE/exam papers, prelims and report cards.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-academic', 'grp-operations'], tags: ['group'] },
     { id: 'grp-finance', title: 'Finance & Billing', category: 'finance', description: 'Money flows: fees, invoices, payments, refunds, installments and finance master data.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-admissions'], tags: ['group'] },
-    { id: 'grp-operations', title: 'Operations', category: 'operations', description: 'Day-to-day running of the school: attendance, discipline, pickups, certificates, documents, schedules and analytics.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-student-life'], tags: ['group'] },
-    { id: 'grp-student-life', title: 'Student Life', category: 'student-life', description: 'Beyond the classroom: CCA, LEAPS enrichment, conduct, remarks and e-badges.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-operations'], tags: ['group'] },
+    { id: 'grp-operations', title: 'Operations', category: 'operations', description: 'Day-to-day running of the school: attendance, discipline, pickups, certificates, documents, schedules and analytics.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-co-curricular'], tags: ['group'] },
+    { id: 'grp-co-curricular', title: 'Co-Curricular & Conduct', category: 'co-curricular', description: 'Beyond the classroom: CCA, LEAPS enrichment, conduct, remarks and e-badges.', level: 1, parentId: 'smartbag', crud: [], relatesTo: ['grp-operations'], tags: ['group'] },
     { id: 'grp-core', title: 'Core / Platform', category: 'core', description: 'Platform plumbing shared by everything: master data, notifications, media/file storage, mailer, external integrations and system config.', level: 1, parentId: 'smartbag', crud: [], relatesTo: [], tags: ['group'] },
     // ---- Portals (per role, from bbs/ frontend inventory) ----
     {
@@ -263,10 +263,10 @@ export const yggdrasilData: YggdrasilData = {
       id: 'conduct-badges',
       title: 'Conduct, Remarks & E-Badges',
       userNote: 'Modul perilaku (conduct) dan E-Badges yang dipakai untuk mencatat catatan perilaku serta memberikan badge elektronik kepada siswa. Guru wali kelas mencatat conduct dan e-badge siswa, sementara admin mengatur jenis badge. Fitur ini menjadi jalur pencatatan perilaku utama dan apresiasi siswa di tingkat kelas.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Teacher portal conduct/remarks entry + ebadges; feeds student dashboard widgets (badges, medals).',
       level: 2,
-      parentId: 'grp-student-life',
+      parentId: 'grp-co-curricular',
       crud: [
         { id: 'cb-1', label: 'Add remark / badge', type: 'create' },
         { id: 'cb-2', label: 'View conduct record', type: 'read' },
@@ -3736,7 +3736,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'conduct-api',
       title: 'Conduct API',
       userNote: 'Fitur ini menyimpan catatan conduct atau perilaku siswa per student report dan per term, termasuk nilai conduct yang diberikan guru pembina kelas. Guru dapat membuat, memperbarui, dan memuat banyak catatan conduct sekaligus untuk siswa di kelasnya, dan catatan ini menjadi bahan laporan perilaku siswa. Data conduct ini juga dipakai sebagai dasar pada proses verifikasi conduct tingkat secondary.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Conduct record entries and verification.',
       apiRoute: 'GET×2, POST×2, PUT — /api/v1/conducts',
       spec: {
@@ -3762,7 +3762,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'remark-api',
       title: 'Remarks API',
       userNote: 'Modul catatan (remark) yang dipakai untuk menambahkan dan mengelola catatan terkait siswa. Guru atau admin dapat membuat, melihat, memperbarui, dan menghapus catatan siswa sesuai kebutuhan. Catatan ini melengkapi informasi perilaku dan perkembangan siswa dalam sistem.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Teacher remarks on students.',
       apiRoute: 'GET×2, POST×3, PUT — /api/v1/remarks',
       spec: {
@@ -3813,7 +3813,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'cca-registration',
       title: 'CCA Registration',
       userNote: 'Modul pendaftaran kegiatan CCA (Co-Curricular Activity) oleh siswa, mencakup pengajuan, persetujuan, penolakan, penarikan, dan undangan keanggotaan. Sistem menerapkan aturan seperti periode pendaftaran, batas jumlah CCA, kuota total, dan kuota berdasarkan jenis kelamin. Admin menyetujui atau menolak pendaftaran, sementara siswa mendaftar pada CCA yang diinginkan.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Student CCA signup/registration flow.',
       apiRoute: 'GET×3, POST×6, PUT — /api/v1/ccaRegistrations',
       spec: {
@@ -3839,7 +3839,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'cca-registration-window',
       title: 'CCA Registration Window',
       userNote: 'Modul pengaturan jendela waktu (window) pendaftaran CCA yang menentukan kapan siswa boleh mendaftar. Admin mengatur periode pembukaan dan penutupan pendaftaran untuk setiap kegiatan. Pengaturan ini memastikan pendaftaran hanya dapat dilakukan sesuai jadwal yang ditetapkan sekolah.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Open/close windows for CCA signups.',
       apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/ccaRegistrationWindows',
       spec: {
@@ -3864,7 +3864,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'cca-year',
       title: 'CCA Year',
       userNote: 'Modul yang mengelola penawaran CCA per tahun ajaran, mencakup CCA, kampus, tingkat, kuota total, kuota laki-laki dan perempuan, deskripsi, serta gambar. Admin mengatur penawaran mana yang dibuka pada tahun ajaran tertentu dan berapa daya tampungnya. Fitur ini menjadi dasar bagi proses pendaftaran dan penempatan siswa ke CCA.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'CCA offering per academic year with coordinators.',
       apiRoute: 'GET×2, POST×2, PUT, DELETE — /api/v1/ccaYears',
       spec: {
@@ -3889,7 +3889,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'student-cca-grade',
       title: 'Student CCA Grade',
       userNote: 'Modul penilaian siswa untuk kegiatan CCA, yang mencatat dan menyimpan nilai CCA setiap siswa. Guru atau admin dapat memberi nilai, memperbarui banyak nilai sekaligus, dan menyinkronkan nilai CCA secara keseluruhan. Nilai ini menjadi bagian dari laporan perkembangan siswa pada kegiatan ekstrakurikuler.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Grades for CCA participation.',
       apiRoute: 'GET×3, POST×2, PUT, DELETE — /api/v1/studentCcaGrades',
       spec: {
@@ -3914,7 +3914,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'badge',
       title: 'Badges',
       userNote: 'Modul pengelolaan master data badge (lencana) yang dipakai sekolah sebagai bentuk penghargaan. Admin dapat membuat, melihat, mengubah, dan menghapus data badge. Badge ini nantinya diberikan kepada siswa sebagai tanda pencapaian atau perilaku baik.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Badge definitions awarded to students.',
       apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/badges',
       spec: {
@@ -3942,7 +3942,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'badge-type',
       title: 'Badge Types',
       userNote: 'Modul pengelolaan jenis badge (badge type) sebagai kategori untuk mengelompokkan berbagai badge. Admin mengatur jenis-jenis badge yang tersedia di sekolah. Pengelompokan ini memudahkan pemberian dan pelaporan badge kepada siswa.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Badge category definitions.',
       apiRoute: 'GET×2, POST, PUT, DELETE — /api/v1/badgeTypes',
       spec: {
@@ -3967,7 +3967,7 @@ export const yggdrasilData: YggdrasilData = {
       id: 'student-badge',
       title: 'Student Badges',
       userNote: 'Modul pemberian badge kepada siswa yang mencatat badge mana yang diperoleh setiap siswa. Guru atau admin dapat memberikan dan mencatat badge siswa sesuai prestasi atau perilakunya. Data ini menjadi riwayat penghargaan yang diterima siswa selama bersekolah.',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Badge awards issued to students.',
       apiRoute: 'GET, POST×2 — /api/v1/studentBadges',
       spec: {
@@ -4215,10 +4215,10 @@ export const yggdrasilData: YggdrasilData = {
     {
       id: 'cca',
       title: 'CCA',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'Co-curricular activities enrolment.',
       level: 2,
-      parentId: 'grp-student-life',
+      parentId: 'grp-co-curricular',
       crud: [],
       relatesTo: ['students'],
       tags: [],
@@ -4257,10 +4257,10 @@ export const yggdrasilData: YggdrasilData = {
     {
       id: 'leaps',
       title: 'LEAPS',
-      category: 'student-life',
+      category: 'co-curricular',
       description: 'LEAPS points and tracking.',
       level: 2,
-      parentId: 'grp-student-life',
+      parentId: 'grp-co-curricular',
       crud: [],
       relatesTo: ['cca'],
       tags: [],
