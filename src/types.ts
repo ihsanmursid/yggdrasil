@@ -52,6 +52,9 @@ export interface FeatureSpec {
   wiki?: string;
 }
 
+/** Portals a node is reachable from. "shared" = 2+ portals, "api" = backend only. */
+export type Portal = 'admin' | 'teacher' | 'student' | 'shared' | 'api';
+
 export interface SkillNode {
   id: string;
   title: string;
@@ -62,6 +65,19 @@ export interface SkillNode {
   crud: CrudOperation[];
   relatesTo: string[];
   tags: string[];
+  /**
+   * Which portal(s) expose this node.
+   * L1/L2 nodes inherit from children; L3 nodes list every portal that shows them.
+   */
+  portals?: Portal[];
+  /** Frontend route(s) relative to the portal base path. Empty for config-only nodes. */
+  routes?: string[];
+  /** Backend module names this node maps to (information, not a node). */
+  modules?: string[];
+  /** Endpoint paths called by this node. */
+  endpoints?: string[];
+  /** Team-wiki doc filenames referenced by this node, e.g. ["students.md"]. */
+  wikiFiles?: string[];
   wikiFile?: string;
   /** Raw reference documentation copied from the team wiki (bbs-wiki), in markdown. */
   wiki?: string;

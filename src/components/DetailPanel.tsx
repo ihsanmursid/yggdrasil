@@ -58,6 +58,13 @@ const PORTAL_AUDIENCE: Record<Screen['portal'], string> = {
   api: 'sistem (otomatis)',
 };
 
+/** Base path per portal so relative V3 routes render as full URLs. */
+const PORTAL_BASE: Record<string, string> = {
+  admin: '/admin',
+  teacher: '/teacher',
+  student: '/student',
+};
+
 /** One plain sentence describing what the whole feature lets a user do. */
 function userSummary(node: SkillNode): string {
   const verbs = new Set(node.crud.map((c) => c.type));
@@ -197,6 +204,8 @@ export function DetailPanel({ node, nodesById, onSelect }: Props) {
   const notes = spec?.notes ?? [];
   const wiki = node.wiki ?? spec?.wiki;
   const userNote = node.userNote;
+  const routes = node.routes ?? [];
+  const wikiFiles = node.wikiFiles ?? (node.wikiFile ? [node.wikiFile] : []);
 
   // Collapse duplicate CRUD verbs: "menambah" once, not five times.
   const crudByType = new Map<CrudOperation['type'], CrudOperation[]>();
@@ -266,7 +275,25 @@ export function DetailPanel({ node, nodesById, onSelect }: Props) {
         </section>
       )}
 
-      {(wiki || node.wikiFile || api || requiredFields.length > 0 || node.apiRoute) && (
+      {routes.length > 0 && screens.length === 0 && (
+        <section>
+          <h3>Route frontend</h3>
+          <ul className="screenlist">
+            {routes.map((r) => {
+              const bases = (node.portals ?? []).filter((p) => p !== 'api' && p !== 'shared');
+              const base = bases[0] ? PORTAL_BASE[bases[0]] ?? '' : '';
+              return (
+                <li key={r}>
+                  <span className="screen-badge portal-api">Route</span>
+                  <code className="screen-where">{base + r}</code>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {(wiki || wikiFiles.length > 0 || api || requiredFields.length > 0 || node.apiRoute || (node.modules?.length ?? 0) > 0 || (node.endpoints?.length ?? 0) > 0) && (
         <section className="tech-section">
           <button
             className="tech-toggle"
@@ -285,8 +312,44 @@ export function DetailPanel({ node, nodesById, onSelect }: Props) {
                   <WikiMarkdown text={wiki} />
                 </div>
               )}
-              {!wiki && node.wikiFile && (
-                <p className="detail-src">Dokumentasi: bbs-wiki/{node.wikiFile}</p>
+              {!wiki && wikiFiles.length > 0 && (
+                <div className="tech-block">
+                  <h4>Dokumentasi</h4>
+                  <ul className="wikifilelist">
+                    {wikiFiles.map((f) => (
+                      <li key={f}>
+                        <a className="wiki-link" href={wikiHref(f)} target="_blank" rel="noreferrer">
+                          bbs-wiki/{f}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {!api && !node.apiRoute && ((node.modules?.length ?? 0) > 0 || (node.endpoints?.length ?? 0) > 0) && (
+                <div className="tech-block">
+                  <h4>Backend</h4>
+                  {(node.modules?.length ?? 0) > 0 && (
+                    <p className="api-base">
+                      <span className="api-module">modul:</span>
+                      {node.modules!.map((m) => (
+                        <code key={m} className="field-chip">
+                          {m}
+                        </code>
+                      ))}
+                    </p>
+                  )}
+                  {(node.endpoints?.length ?? 0) > 0 && (
+                    <ul className="endpointlist">
+                      {node.endpoints!.map((e) => (
+                        <li key={e} className="endpoint">
+                          <code className="route">{e}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               )}
 
               {api && (

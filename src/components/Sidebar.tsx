@@ -12,16 +12,6 @@ interface Props {
 export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCount }: Props) {
   const [openCat, setOpenCat] = useState<string | null>(null);
 
-  const childrenOf = useMemo(() => {
-    const m = new Map<string, string[]>();
-    yggdrasilData.nodes.forEach((n) => {
-      if (!n.parentId) return;
-      if (!m.has(n.parentId)) m.set(n.parentId, []);
-      m.get(n.parentId)!.push(n.id);
-    });
-    return m;
-  }, []);
-
   const nodesById = useMemo(() => new Map(yggdrasilData.nodes.map((n) => [n.id, n])), []);
 
   // Level-1 branches grouped by category, in category order.
@@ -31,12 +21,6 @@ export function Sidebar({ selectedId, visibleIds, onSelect, nodeCount, totalCoun
     yggdrasilData.nodes.forEach((n) => {
       if (n.level === 1 && m.has(n.category)) m.get(n.category)!.push(n.id);
     });
-    return m;
-  }, []);
-
-  const colors = useMemo(() => {
-    const m = new Map<string, string>();
-    yggdrasilData.categories.forEach((c) => m.set(c.id, c.color));
     return m;
   }, []);
 

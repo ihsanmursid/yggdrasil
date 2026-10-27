@@ -467,7 +467,15 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
                 {kids.length > 0 ? ` · ${kids.length}` : ''}
               </span>
               <span className="node-title">{n.title}</span>
-              {n.crud.length > 0 && <span className="node-crud">{n.crud.length} ops</span>}
+              {n.portals && n.portals.length > 0 && (
+                <span className="node-portals">
+                  {n.portals.map((p) => (
+                    <span key={p} className={`pbadge portal-${p}`} title={p}>
+                      {p === 'admin' ? 'A' : p === 'teacher' ? 'T' : p === 'student' ? 'S' : p === 'shared' ? 'A+T+S' : p}
+                    </span>
+                  ))}
+                </span>
+              )}
             </button>
           );
         })}
@@ -518,7 +526,9 @@ export function YggdrasilCanvas({ selectedId, visibleIds, onSelect }: Props) {
                 opacity={isSel ? 1 : focusSet.has(n.id) || selectedId === 'smartbag' ? 0.85 : 0.3}
                 style={{ cursor: 'pointer' }}
                 onClick={() => onSelect(n.id)}
-              />
+              >
+                <title>{n.title}{n.portals?.length ? ' — ' + n.portals.join(', ') : ''}</title>
+              </circle>
             );
           })}
         </svg>
